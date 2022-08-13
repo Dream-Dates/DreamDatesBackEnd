@@ -12,7 +12,7 @@ client
   .placesNearby({
     params: {
         locations: { lat: 43.67017, lng: -79.478432 },
-        key: "AIzaSyB1WCqgoNdydHPMGHBjE7fR6lRhXuz27Xo",
+        key: "",
     },
     timeout: 1000, // milliseconds
   })
@@ -28,7 +28,7 @@ client
 //middleware
 app.use(cors())
 app.use(express.json())
-//AIzaSyB1WCqgoNdydHPMGHBjE7fR6lRhXuz27Xo
+
 let config = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=-33.8670522%2C151.1957362&radius=1500&type=restaurant&keyword=cruise&key=AIzaSyB1WCqgoNdydHPMGHBjE7fR6lRhXuz27Xo'
   
    fetch(config)
