@@ -16,8 +16,10 @@ exports.up = function(knex) {
         table.string("country")
         table.string("price_range")
         table.integer("votes")
+        table.string("rating")
       })
 };
+
 
 /**
  * @param { import("knex").Knex } knex

@@ -3,44 +3,11 @@ const app = express()
 const cors = require("cors")
 const pool = require("./db")
 const fetch = require('node-fetch');
-const {Client} = require("@googlemaps/google-maps-services-js")
-const jwt = require('jsonwebtoken')
-
-const client = new Client({});
-
-client
-  .placesNearby({
-    params: {
-        locations: { lat: 43.67017, lng: -79.478432 },
-        key: "",
-    },
-    timeout: 1000, // milliseconds
-  })
-  .then((r) => {
-    r.data.results[0].json();
-  }).then(data => {
-    console.log(data)
-  })
-  .catch((e) => {
-    console.log(e);
-  });
 
 //middleware
 app.use(cors())
 app.use(express.json())
 
-let config = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=-33.8670522%2C151.1957362&radius=1500&type=restaurant&keyword=cruise&key=AIzaSyB1WCqgoNdydHPMGHBjE7fR6lRhXuz27Xo'
-  
-   fetch(config)
-  .then(response => {
-    response.json();
-  }).then(data => {
-    console.log(data)
-  })
-  .catch(function (error) {
-    console.log(error);
-  });
-  
 //Routes
 //fetching events
 app.get("/dreamdates/events", async (req,res) => {
@@ -52,7 +19,7 @@ res.json(events.rows)
 }
 })
 // fetching movies
-app.get("/dreamdates/movies", async (req,res) => {
+app.get("//dreamdates/dates", async (req,res) => {
     try {
     const movies = await pool.query("SELECT * FROM movies")
     res.json(movies.rows)
@@ -60,6 +27,56 @@ app.get("/dreamdates/movies", async (req,res) => {
         console.error(err.message)
     }
     })
+// fetching restaurants
+app.get("/dreamdates/restaurants", async (req,res) => {
+    try {
+    const restaurants = await pool.query("SELECT * FROM restaurants")
+    res.json(restaurants.rows)
+    } catch(err){
+        console.error(err.message)
+    }
+})
+//fetching all date ideas
+app.get("/dreamdates/dates", async (req,res) => {
+    try{
+const movies = await pool.query("select * from movies")
+const events =await  pool.query("select * from events")
+const nearbyplaces = await pool.query("select * from restaurants")
+res.json({
+    movies:movies.rows,
+    events:events.rows,
+    nearbyplaces: nearbyplaces.rows
+})
+    } catch(err){
+        console.log(err.message)
+    }
+})
+
+    //send api to database (restaurants)
+app.get("/dreamdates/append/restaurants", async (req,res) => {
+    try {
+        fetch("https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=40.759059,-73.980768&type=restaurant&radius=5000&key= ")
+.then(res => res.json())
+.then(data => {
+    data.results.map(e => {
+        let name = e.name   
+        let rating = e.rating 
+        let price = e.price_level
+        let location = e.vicinity
+        let id = e.place_id
+sendNearByPlaces(name,rating,price,location,id)
+    })
+    res.json()
+})
+    } catch (err){
+        console.log(err.message)
+    }
+})
+
+async function sendNearByPlaces(name,rating,price,location,id) {
+    pool.query(
+        "INSERT INTO restaurants (title, rating, cost, address, id) VALUES ($1, $2, $3, $4, $5)",[name,rating,price,location,id])
+}
 //sending api to database (movies)
 app.get("/dreamdates/append/movies", async (req,res) => {
     try{
@@ -80,88 +97,109 @@ sendMovieData(id,title,img,description,vote)
         console.error(err.message)
     }
     })
-//function sending movies api to database
+
     async function sendMovieData(id,title,img,description,vote){
 pool.query(
         "INSERT INTO movies (id, title, description, img, votes) VALUES ($1, $2, $3, $4, $5)",[id,title,description,img,vote])
     }
 
-// sending events api to database
-    app.get("/dreamdates/append/events", async (req,res) => {
-        try{
-            fetch("https://api.seatgeek.com/2/events?venue.state=NY&client_id=MjgyNTU3MjV8MTY1OTYzNDg3Ni40NDU2MzI1")
-            .then(res => res.json())
-            .then(data => {
-                data.events.map(e=>{
-                    let type = e.type
-                    let title = e.title
-                    let id = e.id
-                    let addressStreet = e.venue.address
-                    let city = e.venue.extended_address
-                    let venue = e.venue.name
-                    let country = e.venue.country
-                    sendEventsData(id,type,title,addressStreet,city,country,venue)
-                //https://image.tmdb.org/t/p/w500/
-            }) 
-        res.json()
-        })
-        }catch(err){
-            console.error(err.message)
-        }
-        })
-//sending api to database
+// sending events api to database (events)
+app.get("/dreamdates/append/events", async (req,res) => {
+    try{
+        fetch("https://api.seatgeek.com/2/events?venue.state=NY&client_id=MjgyNTU3MjV8MTY1OTYzNDg3Ni40NDU2MzI1")
+        .then(res => res.json())
+        .then(data => {
+            data.events.map(e=>{
+                let type = e.type
+                let title = e.title
+                let id = e.id
+                let addressStreet = e.venue.address
+                let city = e.venue.extended_address
+                let venue = e.venue.name
+                let country = e.venue.country
+                sendEventsData(id,type,title,addressStreet,city,country,venue)
+            //https://image.tmdb.org/t/p/w500/
+        }) 
+    res.json()
+    })
+    }catch(err){
+        console.error(err.message)
+    }
+    })
+
 async function sendEventsData(id,type,title,addressStreet,city,country,venue){
     pool.query(
         "INSERT INTO events (id, type, title, adress_Street, city, country, venue) VALUES ($1, $2, $3, $4,$5,$6,$7)",[id,type,title,addressStreet,city,country,venue])
 }
-
-app.get("/dreamdates/dates", async (req,res) => {
-    try{
-const movies = await pool.query("select * from movies")
-const events =await  pool.query("select * from events")
-res.json({
-    movies:movies.rows,
-    events:events.rows
-})
-    } catch(err){
-        console.log(err.message)
-    }
-})
-
-
 
 // post for creating a new user
 app.post("/dreamdates/register", async (req,res) => {
     try {
         console.log(req.body)
         const {email, password} = req.body
+        const user = await pool.query("SELECT * FROM users WHERE email = $1", [
+            email,
+          ]);
+          if (user.rows.length !== 0) {
+            return res.status(401).send("user already exists");
+          }
+
         const newUser = await pool.query(
-            "INSERT INTO users (email, password) VALUES ($1, $2)",[email, password])
-            res.json(newUser)
+            "INSERT INTO users (email, password) VALUES ($1, $2) returning *",[email, password])
+            res.json(newUser.rows[0].id)
     } catch(err){
         console.error(err.message)
     }
     })
 
-//post for saving the date idea towards the saved page
-app.post("/dreamdates/saved-date", async (req,res) => {
-try{
-    const {id,title,description,img,userId } = req.body
-    const saveDate = await pool.query(
-        "INSERT INTO dating_ideas "
-    )
-} catch(err){
-    console.log(err.message)
-}
+app.post("dreamdates/login", async (req,res) => {
+    try{
+        const { email } = req.body;
+
+        const user = await pool.query("SELECT * FROM users WHERE email = $1", [
+          email,
+        ]);
+    
+        if (user.rows.length === 0) {
+          res.status(401).json("password or email is incorrect");
+        }
+    
+        const id = user.rows[0].user_id
+        res.json({ id });
+    } catch(err){
+
+    }
 })
 //delete for deleting a user
-app.delete("./dreamdates/user/:id", async (req,res) => {
+app.delete("/dreamdates/user/:id", async (req,res) => {
     try{
-        console.log(req.body)
+        const {id} = req.params;
+        console.log(id)
+        pool.query("DELETE FROM dating_ideas WHERE id = $1", [id])
+        const deleteUser = await pool.query("DELETE FROM users WHERE id = $1 RETURNING *", [id])
+        res.json(deleteUser.rows)
     } catch(err){
         console.log(err.message)
     }
 })
+
+// saving date idea
+app.post("/dreamdates/datingideas/saved", async (req,res) => {
+    try{
+        const {id,title,description,img,user_id,type,adress_street,city,venue,country,price_range,votes,rating} = req.body
+        console.log(id,title,description,img,user_id,type,adress_street,city,venue,country,price_range,votes,rating)
+        //events
+        if(title && type && adress_street && city && venue && country && price_range){
+            const eventSaved = await pool.query("INSERT events (id,title, type, adress_street,city,venue, country, price_range, user_id) values $1$2$3$4$5$6$7$8$9"[id,title, type, adress_street,city,venue, country, price_range, user_id])
+            res.json(eventSaved)
+        }
+    }
+    catch(err){
+
+    }
+} )
+
+
 
 
 app.listen(4000, () => {
