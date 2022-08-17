@@ -3,21 +3,22 @@ const app = express()
 const cors = require("cors")
 const pool = require("./db")
 const fetch = require('node-fetch');
-
+const AuthRouter = require('./auth')
+const verifyjwt = require("./authorization")
 //middleware
 app.use(cors())
 app.use(express.json())
-
+app.use(AuthRouter)
 //Routes
 //fetching events
-app.get("/dreamdates/events", async (req,res) => {
-try {
-const events = await pool.query("SELECT * FROM events")
-res.json(events.rows)
-} catch(err){
-    console.error(err.message)
-}
-})
+// app.get("/dreamdates/events", async (req,res) => {
+// try {
+// const events = await pool.query("SELECT * FROM events")
+// res.json(events.rows)
+// } catch(err){
+//     console.error(err.message)
+// }
+// })
 // fetching movies
 app.get("//dreamdates/dates", async (req,res) => {
     try {
@@ -174,14 +175,13 @@ app.post("dreamdates/login", async (req,res) => {
 app.delete("/dreamdates/user/:id", async (req,res) => {
     try{
         const {id} = req.params;
-        console.log(id)
         pool.query("DELETE FROM dating_ideas WHERE id = $1", [id])
         const deleteUser = await pool.query("DELETE FROM users WHERE id = $1 RETURNING *", [id])
         res.json(deleteUser.rows)
     } catch(err){
         console.log(err.message)
     }
-})
+})  
 
 // saving date idea
 app.post("/dreamdates/datingideas/saved", async (req,res) => {
@@ -190,16 +190,37 @@ app.post("/dreamdates/datingideas/saved", async (req,res) => {
         console.log(id,title,description,img,user_id,type,adress_street,city,venue,country,price_range,votes,rating)
         //events
         if(title && type && adress_street && city && venue && country && price_range){
-            const eventSaved = await pool.query("INSERT events (id,title, type, adress_street,city,venue, country, price_range, user_id) values $1$2$3$4$5$6$7$8$9"[id,title, type, adress_street,city,venue, country, price_range, user_id])
-            res.json(eventSaved)
+            const eventSaved = await pool.query("INSERT INTO dating_ideas (id,title, type, adress_street,city,venue, country, price_range, user_id) VALUES $1,$2,$3,$4,$5,$6,$7,$8,$9",[id,title, type, adress_street,city,venue, country, price_range, user_id])
+            res.json(eventSaved)                
+        }
+        //movies
+        if(title && description && img && votes){
+            const moviesSaved = await pool.query("INSERT INTO dating_ideas (id,title, description,img,votes user_id) VALUES ($1, $2, $3, $4,$5,$6)",[id,title, description,img,votes, user_id])
+            res.json(moviesSaved)           
+        }
+        //restaurant
+        if(title && adress_street && price_range && rating){
+            const restaurantSaved = await pool.query("INSERT INTO dating_ideas (id,title, adress_street,price_range, rating) values $1,$2,$3,$4,$5",[id,title, description,img, user_id])
+            res.json(restaurantSaved)
         }
     }
     catch(err){
-
+        console.log(err.message)
     }
 } )
 
 
+app.delete("/dreamdates/datingideas/delete/:id", async (req,res) => {
+try{
+        const dateId = req.params
+        const userid = req.body
+        const deleteDate = await pool.query("DELETE from dating_ideas where id = $1 AND user_id = $2",[dateId,userid])
+        res.json(deleteDate)
+    } catch(err){
+        console.log(err.message)
+    }
+})
+    
 
 
 app.listen(4000, () => {
