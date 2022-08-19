@@ -13,6 +13,9 @@ app.use(express.json())
 app.use(AuthRouter)
 //Routes
 //fetching events
+app.get("/", (req,res) => {
+    res.status(200).json("hello")
+})
 app.get("/dreamdates/events", async (req,res) => {
 try {
 const events = await pool.query("SELECT * FROM events")
