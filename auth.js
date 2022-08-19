@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
-const AuthController = require('../server/controllers/authControllers')
-const authorization = require('../server/authorization')
+const AuthController = require('./controllers/authControllers')
+const authorization = require('./authorization')
 const verifyjwt = require("./authorization")
 router.post('/register', AuthController.registerUser);
 router.post('/login', AuthController.loginUser);
