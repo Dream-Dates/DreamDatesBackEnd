@@ -9,6 +9,7 @@
         table.string("description", 2000)
         table.string("img")
         table.integer("votes")
+        
       })
 };
 
