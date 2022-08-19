@@ -12,6 +12,7 @@ exports.up = function(knex) {
         table.string("venue")
         table.string("country")
         table.string("price_range")
+        table.string("img")
       })
 };
 

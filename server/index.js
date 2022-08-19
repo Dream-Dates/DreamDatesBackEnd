@@ -5,22 +5,24 @@ const pool = require("./db")
 const fetch = require('node-fetch');
 const AuthRouter = require('./auth')
 const verifyjwt = require("./authorization")
+require('dotenv').config()
+
 //middleware
 app.use(cors())
 app.use(express.json())
 app.use(AuthRouter)
 //Routes
 //fetching events
-// app.get("/dreamdates/events", async (req,res) => {
-// try {
-// const events = await pool.query("SELECT * FROM events")
-// res.json(events.rows)
-// } catch(err){
-//     console.error(err.message)
-// }
-// })
+app.get("/dreamdates/events", async (req,res) => {
+try {
+const events = await pool.query("SELECT * FROM events")
+res.json(events.rows)
+} catch(err){
+    console.error(err.message)
+}
+})
 // fetching movies
-app.get("//dreamdates/dates", async (req,res) => {
+app.get("/dreamdates/movies", async (req,res) => {
     try {
     const movies = await pool.query("SELECT * FROM movies")
     res.json(movies.rows)
@@ -56,7 +58,7 @@ res.json({
     //send api to database (restaurants)
 app.get("/dreamdates/append/restaurants", async (req,res) => {
     try {
-        fetch("https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=40.759059,-73.980768&type=restaurant&radius=5000&key= ")
+        fetch(`https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=40.759059,-73.980768&type=restaurant&radius=5000&key=${process.env.GOOGLE_API}`)
 .then(res => res.json())
 .then(data => {
     data.results.map(e => {
@@ -76,7 +78,7 @@ sendNearByPlaces(name,rating,price,location,id)
 
 async function sendNearByPlaces(name,rating,price,location,id) {
     pool.query(
-        "INSERT INTO restaurants (title, rating, cost, address, id) VALUES ($1, $2, $3, $4, $5)",[name,rating,price,location,id])
+        "INSERT INTO restaurants (title, rating, price_range, adress_street, id) VALUES ($1, $2, $3, $4, $5)",[name,rating,price,location,id])
 }
 //sending api to database (movies)
 app.get("/dreamdates/append/movies", async (req,res) => {
@@ -153,7 +155,7 @@ app.post("/dreamdates/register", async (req,res) => {
     }
     })
 
-app.post("dreamdates/login", async (req,res) => {
+app.post("/dreamdates/login", async (req,res) => {
     try{
         const { email } = req.body;
 
