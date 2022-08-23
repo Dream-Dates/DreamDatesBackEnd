@@ -24,6 +24,16 @@ res.json(events.rows)
     console.error(err.message)
 }
 })
+
+app.get("/dreamdates/saved/dates", async (req,res) => {
+    try {
+    const events = await pool.query("SELECT * FROM dating_ideas")
+    res.json(events.rows)
+    } catch(err){
+        console.error(err.message)
+    }
+    })
+
 // fetching movies
 app.get("/dreamdates/movies", async (req,res) => {
     try {
