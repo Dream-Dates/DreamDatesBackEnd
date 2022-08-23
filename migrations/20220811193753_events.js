@@ -13,6 +13,8 @@ exports.up = function(knex) {
         table.string("country")
         table.string("price_range")
         table.string("img")
+        table.string("time")
+        table.string("link")
       })
 };
 
