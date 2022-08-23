@@ -95,7 +95,7 @@ app.get("/dreamdates/append/movies", async (req,res) => {
                 const description = e.overview
                 const img = `https://image.tmdb.org/t/p/w500`+`${e.poster_path}`
                 const vote = Math.floor(e.vote_average)
-                const price = "$$"
+                const price = "$"
                
   getVideo(id,title,img,description,vote,price)
         }) 
@@ -126,7 +126,7 @@ pool.query(
 // sending events api to database (events)
 app.get("/dreamdates/append/events", async (req,res) => {
     try{
-        fetch("https://api.seatgeek.com/2/events?venue.state=NY&client_id=MjgyNTU3MjV8MTY1OTYzNDg3Ni40NDU2MzI1")
+        fetch("https://api.seatgeek.com/2/events?venue.state=NY&datetime_utc.gt=2020-08-23&client_id=MjgyNTU3MjV8MTY1OTYzNDg3Ni40NDU2MzI1")
         .then(res => res.json())
         .then(data => {
             data.events.map(e=>{
@@ -139,9 +139,9 @@ app.get("/dreamdates/append/events", async (req,res) => {
                 let country = e.venue.country
                 let price = "$$$"
                 let link = e.venue.url
-                let img = e.performers[0].images
+                let img = e.performers[0].images.huge
                 let time = e.visible_until_utc
-                sendEventsData(id,type,title,addressStreet,city,country,venue)
+                sendEventsData(id,type,title,addressStreet,city,country,venue,price,link,img,time)
             //https://image.tmdb.org/t/p/w500/
         }) 
     res.json()
@@ -151,9 +151,16 @@ app.get("/dreamdates/append/events", async (req,res) => {
     }
     })
 
-async function sendEventsData(id,type,title,addressStreet,city,country,venue){
-    pool.query(
-        "INSERT INTO events (id, type, title, adress_Street, city, country, venue) VALUES ($1, $2, $3, $4,$5,$6,$7)",[id,type,title,addressStreet,city,country,venue])
+async function sendEventsData(id,type,title,addressStreet,city,country,venue,price,link,img,time){
+    if(img){
+        pool.query(
+            "INSERT INTO events (id, type, title, adress_Street, city, country, venue,price_range,link,img,time) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10,$11)",[id,type,title,addressStreet,city,country,venue,price,link,img,time])
+    } else {
+        let image = "https://trello.com/1/cards/62e1986b704d656ec25f168c/attachments/62fff894fe86717729859552/download/events_backdrop.jpg"
+        pool.query(
+            "INSERT INTO events (id, type, title, adress_Street, city, country, venue,price_range,link,img,time) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10,$11)",[id,type,title,addressStreet,city,country,venue,price,link,image,time])
+    }
+   
 }
 
 // post for creating a new user
@@ -218,7 +225,7 @@ app.post("/dreamdates/datingideas/saved", async (req,res) => {
         }
         //movies
         if(title && description && img && votes){
-            const moviesSaved = await pool.query("INSERT INTO dating_ideas (id,title, description,img,votes user_id) VALUES ($1, $2, $3, $4,$5,$6)",[id,title, description,img,votes, user_id])
+            const moviesSaved = await pool.query("INSERT INTO dating_ideas (id,title, description,img,votes, user_id) VALUES ($1, $2, $3, $4,$5,$6)",[id,title, description,img,votes, user_id])
             res.json(moviesSaved)           
         }
         //restaurant
