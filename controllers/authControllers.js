@@ -34,15 +34,18 @@ res.json(events.rows)
             }
 
             const hashedPassword = await bcrypt.hash(password, 10)
-
+//return all data in json from users
             const newUser = await pool.query('INSERT INTO users (email, password, name, last_name) VALUES ($1, $2,$3,$4) RETURNING *', [
                 email, 
                 hashedPassword,
                 name,
-        lastname]).then(res => res.rows)
+        lastname
+      ]).then(res => res.rows)
 
+          const getUser = await pool.query('SELECT * FROM users WHERE email = $1', [email])
+          
             const token = jwtGenerator(newUser[0].id)
-            return res.json({token})
+            return res.status(200).json({ getUser:getUser.rows, token: token})
 
         } catch (error) {
             return res.status(500).json('User not added or token not created')
@@ -57,30 +60,33 @@ res.json(events.rows)
             function validEmail(userEmail) {
                 return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(userEmail);
               }        
-              if(password.length < 7) return res.status(401).json("password needs to be 8 characters")
+              if(password.length < 7) return res.status(401).json({errorMessage:"password bust be 8 characters long"})
               if (req.path === "/login") {
                 console.log(!email.length);
                 if (![email, password].every(Boolean)) {
-                  return res.status(401).json("Missing Credentials");
+                  return res.status(401).json({errorMessage:"Missing Credentials"});
                 } else if (!validEmail(email)) {
-                  return res.status(401).json("Invalid Email");
+                  return res.status(401).json({errorMessage:"The email is invalid."});
                 }
               } 
             const user = await pool.query('SELECT * FROM users WHERE email = $1', [email]).then(res => res.rows)
 
             if (user.length === 0) {
-                return res.status(401).json('Invalid email or password')
+                return res.status(401).json({errorMessage:"Invalid email or password"})
             }
 
-            // const validPassword = await bcrypt.compare(password, user[0].password)
+            const validPassword = await bcrypt.compare(password, user[0].password)
 
-            // if (!validPassword) {
-            //     return res.status(401).json('Invalid email or password')
-            // }
+            if (!validPassword) {
+                return res.status(401).json({errorMessage:"Invalid password"})
+            }
+            const getUser = await pool.query('SELECT * FROM users WHERE email = $1', [
+              email
+    ])
 
             const token = jwtGenerator(user[0].id)
 
-            return res.status(200).json({token})
+            return res.status(200).json({ getUser:getUser.rows, token: token})
 
         } catch (error) {
             console.log(error)

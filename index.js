@@ -95,7 +95,9 @@ app.get("/dreamdates/append/movies", async (req,res) => {
                 const description = e.overview
                 const img = `https://image.tmdb.org/t/p/w500`+`${e.poster_path}`
                 const vote = Math.floor(e.vote_average)
-sendMovieData(id,title,img,description,vote)
+                const price = "$$"
+               
+  getVideo(id,title,img,description,vote,price)
         }) 
     res.json()
     })
@@ -103,10 +105,22 @@ sendMovieData(id,title,img,description,vote)
         console.error(err.message)
     }
     })
+    async function getVideo(id,title,img,description,vote,price){
+fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=3c8d31b949ad58738c6e56fd0522a70a&language=en-US`)
+.then(res => res.json())
+.then(data => {
+    
+let video = data.homepage
+if(description && video){
+    sendMovieData(id,title,img,description,vote,price,video)
+}
 
-    async function sendMovieData(id,title,img,description,vote){
+})
+    }
+
+    async function sendMovieData(id,title,img,description,vote,price,video){
 pool.query(
-        "INSERT INTO movies (id, title, description, img, votes) VALUES ($1, $2, $3, $4, $5)",[id,title,description,img,vote])
+        "INSERT INTO movies (id, title, description, img, votes, price, link) VALUES ($1, $2, $3, $4, $5,$6,$7)",[id,title,description,img,vote,price,video])
     }
 
 // sending events api to database (events)
@@ -123,6 +137,10 @@ app.get("/dreamdates/append/events", async (req,res) => {
                 let city = e.venue.extended_address
                 let venue = e.venue.name
                 let country = e.venue.country
+                let price = "$$$"
+                let link = e.venue.url
+                let img = e.performers[0].images
+                let time = e.visible_until_utc
                 sendEventsData(id,type,title,addressStreet,city,country,venue)
             //https://image.tmdb.org/t/p/w500/
         }) 
