@@ -67,7 +67,7 @@ res.json({
         console.log(err.message)
     }
 })
-
+//https://developers.google.com/maps/documentation/places/web-service/details
     //send api to database (restaurants)
 app.get("/dreamdates/append/restaurants", async (req,res) => {
     try {
@@ -84,7 +84,7 @@ e.photos.map(a => {
     let price = e.price_level
     let location = e.vicinity
     let id = e.place_id
-    console.log(img)
+    console.log(id)
     sendNearByPlaces(name,rating,price,location,id,img)
 })
     })
@@ -94,13 +94,12 @@ e.photos.map(a => {
         console.log(err.message)
     }
 })
-
+//https://developers.google.com/maps/documentation/places/web-service/details   link to google api
+// fetches the pics and the time it is open
+//https://maps.googleapis.com/maps/api/place/details/json?fields=photos,opening_hours&place_id=ChIJN1t_tDeuEmsRUsoyG83frY4&key=AIzaSyB1WCqgoNdydHPMGHBjE7fR6lRhXuz27Xo
  async function sendNearByPlaces(name,rating,price,location,id,img) {
- fetch(`https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${img}&key=${process.env.GOOGLE_API}`)
-    .then(res => res.json())
-    .then(data => {
-        console.log(data)
-    })
+let image = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${img}&key=${process.env.GOOGLE_API}`
+
     // pool.query(
     //     "INSERT INTO restaurants (title, rating, price_range, adress_street, id) VALUES ($1, $2, $3, $4, $5)",[name,rating,price,location,id])
 }
