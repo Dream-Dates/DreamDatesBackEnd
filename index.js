@@ -75,12 +75,18 @@ app.get("/dreamdates/append/restaurants", async (req,res) => {
 .then(res => res.json())
 .then(data => {
     data.results.map(e => {
-        let name = e.name   
-        let rating = e.rating 
-        let price = e.price_level
-        let location = e.vicinity
-        let id = e.place_id
-sendNearByPlaces(name,rating,price,location,id)
+
+
+e.photos.map(a => {
+    let img = a.photo_reference
+    let name = e.name   
+    let rating = e.rating 
+    let price = e.price_level
+    let location = e.vicinity
+    let id = e.place_id
+    console.log(img)
+    sendNearByPlaces(name,rating,price,location,id,img)
+})
     })
     res.json()
 })
@@ -89,9 +95,14 @@ sendNearByPlaces(name,rating,price,location,id)
     }
 })
 
-async function sendNearByPlaces(name,rating,price,location,id) {
-    pool.query(
-        "INSERT INTO restaurants (title, rating, price_range, adress_street, id) VALUES ($1, $2, $3, $4, $5)",[name,rating,price,location,id])
+ async function sendNearByPlaces(name,rating,price,location,id,img) {
+ fetch(`https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${img}&key=${process.env.GOOGLE_API}`)
+    .then(res => res.json())
+    .then(data => {
+        console.log(data)
+    })
+    // pool.query(
+    //     "INSERT INTO restaurants (title, rating, price_range, adress_street, id) VALUES ($1, $2, $3, $4, $5)",[name,rating,price,location,id])
 }
 //sending api to database (movies)
 app.get("/dreamdates/append/movies", async (req,res) => {
@@ -147,7 +158,7 @@ app.get("/dreamdates/append/events", async (req,res) => {
                 let city = e.venue.extended_address
                 let venue = e.venue.name
                 let country = e.venue.country
-                let price = "$$$"
+                let price = ""
                 let link = e.venue.url
                 let img = e.performers[0].images.huge
                 let time = e.visible_until_utc
