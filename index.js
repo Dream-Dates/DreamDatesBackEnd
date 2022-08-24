@@ -71,22 +71,36 @@ res.json({
     //send api to database (restaurants)
 app.get("/dreamdates/append/restaurants", async (req,res) => {
     try {
-        fetch(`https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=40.759059,-73.980768&type=restaurant&radius=5000&key=${process.env.GOOGLE_API}`)
+    fetch(`https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=40.759059,-73.980768&type=restaurant&radius=5000&key=${process.env.GOOGLE_API}`)
 .then(res => res.json())
 .then(data => {
     data.results.map(e => {
 
 
-e.photos.map(a => {
-    let img = a.photo_reference
+
     let name = e.name   
     let rating = e.rating 
     let price = e.price_level
     let location = e.vicinity
     let id = e.place_id
-    console.log(id)
-    sendNearByPlaces(name,rating,price,location,id,img)
-})
+    // console.log(name,rating,price,location,id)
+    // console.log("work")
+    fetch(`https://maps.googleapis.com/maps/api/place/details/json?fields=photos,opening_hours&place_id=${id}&key=${process.env.GOOGLE_API}`)
+    .then(res => res.json())
+    .then(data => {
+        const openingHours = data['result']['opening_hours']["weekday_text"];
+        
+        // if (data){
+        //     console.log(data);
+        // }else {
+        //     console.log("didnt work")
+        // }
+        // console.log(data.result.photos.photo_reference)
+    }
+        
+        )
+    // sendNearByPlaces(name,rating,price,location,id,img)
+
     })
     res.json()
 })
@@ -97,12 +111,12 @@ e.photos.map(a => {
 //https://developers.google.com/maps/documentation/places/web-service/details   link to google api
 // fetches the pics and the time it is open
 //https://maps.googleapis.com/maps/api/place/details/json?fields=photos,opening_hours&place_id=ChIJN1t_tDeuEmsRUsoyG83frY4&key=AIzaSyB1WCqgoNdydHPMGHBjE7fR6lRhXuz27Xo
- async function sendNearByPlaces(name,rating,price,location,id,img) {
-let image = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${img}&key=${process.env.GOOGLE_API}`
+//  async function sendNearByPlaces(name,rating,price,location,id,img) {
+// let timeImage = `https://maps.googleapis.com/maps/api/place/details/json?fields=photos,opening_hours&place_id=${id}&key=${process.env.GOOGLE_API}`
 
     // pool.query(
     //     "INSERT INTO restaurants (title, rating, price_range, adress_street, id) VALUES ($1, $2, $3, $4, $5)",[name,rating,price,location,id])
-}
+// }
 //sending api to database (movies)
 app.get("/dreamdates/append/movies", async (req,res) => {
     try{
