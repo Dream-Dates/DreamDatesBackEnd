@@ -4,7 +4,7 @@
  */
 exports.up = function(knex) {
     return knex.schema.createTable("events", (table) => {
-        table.string("id")
+        table.integer("id")
         table.string("title")
         table.string("type")
         table.string("adress_street")

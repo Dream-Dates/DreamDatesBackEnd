@@ -4,7 +4,7 @@
  */
  exports.up = function(knex) {
     return knex.schema.createTable("movies", (table) => {
-        table.string("id")
+        table.integer("id")
         table.string("title")
         table.string("description", 2000)
         table.string("img")

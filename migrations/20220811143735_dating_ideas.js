@@ -4,8 +4,8 @@
  */
 exports.up = function(knex) {
     return knex.schema.createTable("dating_ideas", (table) => {
-        table.string("id")
-        table.string("title").notNullable()
+        table.integer("id")
+        table.string("title")
         table.string("description", 2000)
         table.string("img")
         table.integer("user_id")
@@ -17,6 +17,11 @@ exports.up = function(knex) {
         table.string("price_range")
         table.integer("votes")
         table.string("rating")
+        table.string("link")
+        table.string("time")
+        table.string("price")
+        table.string("opening_hours")
+        table.string("website")
       })
 };
 

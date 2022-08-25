@@ -76,22 +76,19 @@ app.get("/dreamdates/append/restaurants", async (req,res) => {
 .then(res => res.json())
 .then(data => {
     data.results.map(e => {
-
     let website = ""
     let img = ""
     let opening = []
-    // let name = e.name   
-    // let rating = e.rating 
-    // let price = e.price_level
-    // let location = e.vicinity
+    let name = e.name   
+    let rating = e.rating 
+    let price = e.price_level
+    let location = e.vicinity
     let id = e.place_id
-//   pool.query("INSERT INTO restaurants (title, rating, price_range, adress_street, id) VALUES ($1, $2, $3, $4, $5)",[name,rating,price,location,id])
-
+    //fetching more pics
     fetch(`https://maps.googleapis.com/maps/api/place/details/json?fields=photos,opening_hours,website&place_id=${id}&key=${process.env.GOOGLE_API}`)
     .then(res => res.json())
     .then(data => {
-        // const openingHours = data['result']['opening_hours']["weekday_text"];
-        // console.log(data.result.photos)
+        let groupImg = []
 console.log(opening)
         if(data.result.website){
              website = data.result.website
@@ -104,20 +101,14 @@ console.log(opening)
                 data.result.photos.map(e => {
                     let photoRef = e.photo_reference
  img = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&maxheight=400&photo_reference=${photoRef}&key=AIzaSyB1WCqgoNdydHPMGHBjE7fR6lRhXuz27Xo`
-                })
-                pool.query("INSERT INTO restaurants (id, ARRAY image,opening_hours ) VALUES ($1, $2)",[id,img,opening])
+ groupImg.push(img)
+})
+                pool.query("INSERT INTO restaurants (id, image, opening_hours,website,title,rating,price_range,adress_street) VALUES ($1, $2, $3, $4,$5,$6,$7,$8)",[id,groupImg,opening,website,name,rating,price,location])
+groupImg = []
+opening = []
+website = ""
         }
-// console.log(img)
-        // if(data.result.opening_hours){
-        //     console.log(data.result.opening_hours.weekday_text)
-        // }else {
-        //     console.log("didnt work")
-        // }
-
-    }
-        
-        )
-    // sendNearByPlaces(name,rating,price,location,id,img)
+    })
 
     })
     res.json()
@@ -126,15 +117,9 @@ console.log(opening)
         console.log(err.message)
     }
 })
-//https://developers.google.com/maps/documentation/places/web-service/details   link to google api
-// fetches the pics and the time it is open
-//https://maps.googleapis.com/maps/api/place/details/json?fields=photos,website,opening_hours&place_id=ChIJN1t_tDeuEmsRUsoyG83frY4&key=AIzaSyB1WCqgoNdydHPMGHBjE7fR6lRhXuz27Xo
-//  async function sendNearByPlaces(name,rating,price,location,id,img) {
-// let timeImage = `https://maps.googleapis.com/maps/api/place/details/json?fields=photos,opening_hours&place_id=${id}&key=${process.env.GOOGLE_API}`
 
-    // pool.query(
-    //     "INSERT INTO restaurants (title, rating, price_range, adress_street, id) VALUES ($1, $2, $3, $4, $5)",[name,rating,price,location,id])
-// }
+// app.get("/dreamdates/append/attractions")
+
 //sending api to database (movies)
 app.get("/dreamdates/append/movies", async (req,res) => {
     try{
@@ -178,7 +163,7 @@ pool.query(
 // sending events api to database (events)
 app.get("/dreamdates/append/events", async (req,res) => {
     try{
-        fetch("https://api.seatgeek.com/2/events?venue.state=NY&datetime_utc.gt=2020-08-23&client_id=MjgyNTU3MjV8MTY1OTYzNDg3Ni40NDU2MzI1")
+        fetch("https://api.seatgeek.com/2/events?venue.city=TORONTO&datetime_utc.gt=2020-08-23&client_id=MjgyNTU3MjV8MTY1OTYzNDg3Ni40NDU2MzI1")
         .then(res => res.json())
         .then(data => {
             data.events.map(e=>{
@@ -267,22 +252,23 @@ app.delete("/dreamdates/user/:id", async (req,res) => {
 
 // saving date idea
 app.post("/dreamdates/datingideas/saved", async (req,res) => {
-    try{
-        const {id,title,description,img,user_id,type,adress_street,city,venue,country,price_range,votes,rating} = req.body
-        console.log(id,title,description,img,user_id,type,adress_street,city,venue,country,price_range,votes,rating)
+    try{ 
+
+    const {id, type, title, adress_street, city, country, venue,price_range,link,img,time,description, votes, price, opening_hours,website, rating,user_id } = req.body
+        console.log(id, type, title, adress_street, city, country, venue,price_range,link,img,time,description, votes, price, opening_hours,website, rating,user_id )
         //events
         if(title && type && adress_street && city && venue && country && price_range){
-            const eventSaved = await pool.query("INSERT INTO dating_ideas (id,title, type, adress_street,city,venue, country, price_range, user_id) VALUES $1,$2,$3,$4,$5,$6,$7,$8,$9",[id,title, type, adress_street,city,venue, country, price_range, user_id])
+            const eventSaved = await pool.query("INSERT INTO dating_ideas (id, type, title, adress_street, city, country, venue,price_range,link,img,time, user_id) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10,$11,$12)",[id, type, title, adress_street, city, country, venue,price_range,link,img,time, user_id])
             res.json(eventSaved)                
         }
         //movies
-        if(title && description && img && votes){
-            const moviesSaved = await pool.query("INSERT INTO dating_ideas (id,title, description,img,votes, user_id) VALUES ($1, $2, $3, $4,$5,$6)",[id,title, description,img,votes, user_id])
+        if(title && description && img && votes && price_range && link){
+            const moviesSaved = await pool.query("INSERT INTO dating_ideas (id, title, description, img, votes, price_range, link, user_id) VALUES ($1, $2, $3, $4, $5,$6,$7,$8)",[id, title, description, img, votes, price_range, link, user_id])
             res.json(moviesSaved)           
         }
         //restaurant
-        if(title && adress_street && price_range && rating){
-            const restaurantSaved = await pool.query("INSERT INTO dating_ideas (id,title, adress_street,price_range, rating) values $1,$2,$3,$4,$5",[id,title, description,img, user_id])
+        if(id && img && website && title && rating && price_range && adress_street){
+            const restaurantSaved = await pool.query("INSERT INTO dating_ideas (id, img, opening_hours,website,title,rating,price_range,adress_street, user_id) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9)",[id, img, opening_hours,website,title,rating,price_range,adress_street, user_id])
             res.json(restaurantSaved)
         }
     }
