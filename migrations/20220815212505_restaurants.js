@@ -9,6 +9,9 @@
         table.string("adress_street")
         table.string("price_range")
         table.string("rating")
+        table.string("opening_hours")
+        table.string("website")
+        table.string("image")
     })
 };
 

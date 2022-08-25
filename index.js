@@ -25,9 +25,10 @@ res.json(events.rows)
 }
 })
 
-app.get("/dreamdates/saved/dates", async (req,res) => {
+app.post("/dreamdates/saved/dates", async (req,res) => {
     try {
-    const events = await pool.query("SELECT * FROM dating_ideas")
+        const user_id = req.body
+    const events = await pool.query("select * from restaurants where user_id = '$1'")
     res.json(events.rows)
     } catch(err){
         console.error(err.message)
@@ -71,31 +72,48 @@ res.json({
     //send api to database (restaurants)
 app.get("/dreamdates/append/restaurants", async (req,res) => {
     try {
-    fetch(`https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=40.759059,-73.980768&type=restaurant&radius=5000&key=${process.env.GOOGLE_API}`)
+    fetch(`https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=43.726095,-79.442610&type=restaurant&radius=5000&key=${process.env.GOOGLE_API}`)
 .then(res => res.json())
 .then(data => {
     data.results.map(e => {
 
-
-
-    let name = e.name   
-    let rating = e.rating 
-    let price = e.price_level
-    let location = e.vicinity
+    let website = ""
+    let img = ""
+    let opening = []
+    // let name = e.name   
+    // let rating = e.rating 
+    // let price = e.price_level
+    // let location = e.vicinity
     let id = e.place_id
-    // console.log(name,rating,price,location,id)
-    // console.log("work")
-    fetch(`https://maps.googleapis.com/maps/api/place/details/json?fields=photos,opening_hours&place_id=${id}&key=${process.env.GOOGLE_API}`)
+//   pool.query("INSERT INTO restaurants (title, rating, price_range, adress_street, id) VALUES ($1, $2, $3, $4, $5)",[name,rating,price,location,id])
+
+    fetch(`https://maps.googleapis.com/maps/api/place/details/json?fields=photos,opening_hours,website&place_id=${id}&key=${process.env.GOOGLE_API}`)
     .then(res => res.json())
     .then(data => {
-        const openingHours = data['result']['opening_hours']["weekday_text"];
-        
-        // if (data){
-        //     console.log(data);
+        // const openingHours = data['result']['opening_hours']["weekday_text"];
+        // console.log(data.result.photos)
+console.log(opening)
+        if(data.result.website){
+             website = data.result.website
+        }
+        if(data.result.opening_hours){
+            opening.push(data.result.opening_hours.weekday_text)
+        }
+        if(data.result.photos){
+            
+                data.result.photos.map(e => {
+                    let photoRef = e.photo_reference
+ img = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&maxheight=400&photo_reference=${photoRef}&key=AIzaSyB1WCqgoNdydHPMGHBjE7fR6lRhXuz27Xo`
+                })
+                pool.query("INSERT INTO restaurants (id, ARRAY image,opening_hours ) VALUES ($1, $2)",[id,img,opening])
+        }
+// console.log(img)
+        // if(data.result.opening_hours){
+        //     console.log(data.result.opening_hours.weekday_text)
         // }else {
         //     console.log("didnt work")
         // }
-        // console.log(data.result.photos.photo_reference)
+
     }
         
         )
@@ -110,7 +128,7 @@ app.get("/dreamdates/append/restaurants", async (req,res) => {
 })
 //https://developers.google.com/maps/documentation/places/web-service/details   link to google api
 // fetches the pics and the time it is open
-//https://maps.googleapis.com/maps/api/place/details/json?fields=photos,opening_hours&place_id=ChIJN1t_tDeuEmsRUsoyG83frY4&key=AIzaSyB1WCqgoNdydHPMGHBjE7fR6lRhXuz27Xo
+//https://maps.googleapis.com/maps/api/place/details/json?fields=photos,website,opening_hours&place_id=ChIJN1t_tDeuEmsRUsoyG83frY4&key=AIzaSyB1WCqgoNdydHPMGHBjE7fR6lRhXuz27Xo
 //  async function sendNearByPlaces(name,rating,price,location,id,img) {
 // let timeImage = `https://maps.googleapis.com/maps/api/place/details/json?fields=photos,opening_hours&place_id=${id}&key=${process.env.GOOGLE_API}`
 
