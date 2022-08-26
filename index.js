@@ -44,6 +44,14 @@ app.get("/dreamdates/restaurants", async (req,res) => {
         console.error(err.message)
     }
 })
+app.get("/dreamdates/attractions", async (req,res) => {
+    try {
+    const attractions = await pool.query("SELECT * FROM attractions")
+    res.json(attractions.rows)
+    } catch(err){
+        console.error(err.message)
+    }
+    })
 //fetching all date ideas
 app.get("/dreamdates/dates", async (req,res) => {
     try{
