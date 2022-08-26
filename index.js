@@ -25,15 +25,6 @@ res.json(events.rows)
 }
 })
 
-app.post("/dreamdates/saved/dates", async (req,res) => {
-    try {
-        const user_id = req.body
-    const events = await pool.query("select * from restaurants where user_id = '$1'")
-    res.json(events.rows)
-    } catch(err){
-        console.error(err.message)
-    }
-    })
 
 // fetching movies
 app.get("/dreamdates/movies", async (req,res) => {
@@ -89,7 +80,6 @@ app.get("/dreamdates/append/restaurants", async (req,res) => {
     .then(res => res.json())
     .then(data => {
         let groupImg = []
-console.log(opening)
         if(data.result.website){
              website = data.result.website
         }
@@ -97,7 +87,6 @@ console.log(opening)
             opening.push(data.result.opening_hours.weekday_text)
         }
         if(data.result.photos){
-            
                 data.result.photos.map(e => {
                     let photoRef = e.photo_reference
  img = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&maxheight=400&photo_reference=${photoRef}&key=AIzaSyB1WCqgoNdydHPMGHBjE7fR6lRhXuz27Xo`
@@ -118,7 +107,53 @@ website = ""
     }
 })
 
-// app.get("/dreamdates/append/attractions")
+app.get("/dreamdates/append/attractions", async (req,res) => {
+    try {
+        
+    fetch(`https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=43.726095,-79.442610&type=tourist_attraction&radius=90000&key=${process.env.GOOGLE_API}`)
+.then(res => res.json())
+.then(data => {
+    data.results.map(e => {
+    let website = ""
+    let img = ""
+    let opening = []
+    let price = "Free"
+    let name = e.name   
+    let rating = e.rating 
+    let location = e.vicinity
+    let id = e.place_id
+    //fetching more pics
+    fetch(`https://maps.googleapis.com/maps/api/place/details/json?fields=photos,opening_hours,website&place_id=${id}&key=${process.env.GOOGLE_API}`)
+    .then(res => res.json())
+    .then(data => {
+        let groupImg = []
+        if(data.result.website){
+             website = data.result.website
+        }
+        if(data.result.opening_hours){
+            opening.push(data.result.opening_hours.weekday_text)
+        }
+        if(data.result.photos){
+                data.result.photos.map(e => {
+                    let photoRef = e.photo_reference
+ img = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&maxheight=400&photo_reference=${photoRef}&key=AIzaSyB1WCqgoNdydHPMGHBjE7fR6lRhXuz27Xo`
+ groupImg.push(img)
+})
+console.log(id,groupImg,opening,website,name,rating,location)
+                pool.query("INSERT INTO attractions (id, image, opening_hours,website,title,rating,price_range,adress_street) VALUES ($1, $2, $3, $4,$5,$6,$7,$8)",[id,groupImg,opening,website,name,rating,price,location])
+groupImg = []
+opening = []
+website = ""
+        }
+    })
+
+    })
+    res.json()
+})
+    } catch (err){
+        console.log(err.message)
+    }
+})
 
 //sending api to database (movies)
 app.get("/dreamdates/append/movies", async (req,res) => {
@@ -220,6 +255,20 @@ app.post("/dreamdates/register", async (req,res) => {
     }
     })
 
+    app.post("/dreamdates/saved/dates", async (req,res) => {
+        try {
+          
+            const {user_id} = req.body
+            console.log(user_id)
+        const events = await pool.query("select * from dating_ideas where user_id = $1",[user_id])
+        res.json(events.rows)
+        } catch(err){
+            console.error(err.message)
+        }
+        })
+    
+
+
 app.post("/dreamdates/login", async (req,res) => {
     try{
         const { email } = req.body;
@@ -277,18 +326,17 @@ app.post("/dreamdates/datingideas/saved", async (req,res) => {
     }
 } )
 
-
-app.delete("/dreamdates/datingideas/delete/:id", async (req,res) => {
-try{
-        const dateId = req.params
-        const userid = req.body
-        const deleteDate = await pool.query("DELETE from dating_ideas where id = $1 AND user_id = $2",[dateId,userid])
-        res.json(deleteDate)
-    } catch(err){
-        console.log(err.message)
-    }
-})
-    
+    app.delete("/dreamdates/datingideas/delete/:dateId", async (req,res) => {
+        try{
+                const {dateId} = req.params
+                const {userid} = req.body
+                console.log({dateId, userid})
+                const deleteDate = await pool.query("DELETE from dating_ideas where id = $1 AND user_id = $2",[dateId,parseInt(userid)])
+                res.json(deleteDate)
+            } catch(err){
+                console.log(err.message)
+            }
+        })
 
 const port = process.env.PORT || 4000
 app.listen(port, () => {
