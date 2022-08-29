@@ -167,75 +167,52 @@ app.get("/dreamdates/append/restaurants", async (req, res) => {
 });
 
 // app.get("/dreamdates/append/attractions")
-app.get("/dreamdates/append/attractions", async (req, res) => {
-  try {
-    fetch(
-      `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=43.726095,-79.442610&type=tourist_attraction&radius=90000&key=${process.env.GOOGLE_API}`
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        data.results.map((e) => {
-          let website = "";
-          let img = "";
-          let opening = [];
-          let price = "Free";
-          let name = e.name;
-          let rating = e.rating;
-          let location = e.vicinity;
-          let id = e.place_id;
-          //fetching more pics
-          fetch(
-            `https://maps.googleapis.com/maps/api/place/details/json?fields=photos,opening_hours,website&place_id=${id}&key=${process.env.GOOGLE_API}`
-          )
-            .then((res) => res.json())
-            .then((data) => {
-              let groupImg = [];
-              if (data.result.website) {
-                website = data.result.website;
-              }
-              if (data.result.opening_hours) {
-                opening.push(data.result.opening_hours.weekday_text);
-              }
-              if (data.result.photos) {
-                data.result.photos.map((e) => {
-                  let photoRef = e.photo_reference;
-                  img = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&maxheight=400&photo_reference=${photoRef}&key=AIzaSyB1WCqgoNdydHPMGHBjE7fR6lRhXuz27Xo`;
-                  groupImg.push(img);
-                });
-                console.log(
-                  id,
-                  groupImg,
-                  opening,
-                  website,
-                  name,
-                  rating,
-                  location
-                );
-                pool.query(
-                  "INSERT INTO attractions (id, image, opening_hours,website,title,rating,price_range,adress_street) VALUES ($1, $2, $3, $4,$5,$6,$7,$8)",
-                  [
-                    id,
-                    groupImg,
-                    opening,
-                    website,
-                    name,
-                    rating,
-                    price,
-                    location,
-                  ]
-                );
-                groupImg = [];
-                opening = [];
-                website = "";
-              }
-            });
-        });
-        res.json();
-      });
-  } catch (err) {
-    console.log(err.message);
-  }
-});
+app.get("/dreamdates/append/attractions", async (req,res) => {
+    try {
+    fetch(`https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=43.726095,-79.442610&type=tourist_attraction&radius=90000&key=${process.env.GOOGLE_API}`)
+.then(res => res.json())
+.then(data => {
+    data.results.map(e => {
+    let website = ""
+    let img = ""
+    let opening = []
+    let price = "Free"
+    let name = e.name   
+    let rating = e.rating 
+    let location = e.vicinity
+    let id = e.place_i
+    //fetching more pics
+    fetch(`https://maps.googleapis.com/maps/api/place/details/json?fields=photos,opening_hours,website&place_id=${id}&key=${process.env.GOOGLE_API}`)
+    .then(res => res.json())
+    .then(data => {
+        let groupImg = []
+        if(data.result.website){
+             website = data.result.website
+        }
+        if(data.result.opening_hours){
+            opening.push(data.result.opening_hours.weekday_text)
+        }
+        if(data.result.photos){
+                data.result.photos.map(e => {
+                    let photoRef = e.photo_reference
+ img = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&maxheight=400&photo_reference=${photoRef}&key=AIzaSyB1WCqgoNdydHPMGHBjE7fR6lRhXuz27Xo`
+ groupImg.push(img)
+})
+console.log(id,groupImg,opening,website,name,rating,location)
+                pool.query("INSERT INTO attractions (id, image, opening_hours,website,title,rating,price_range,adress_street) VALUES ($1, $2, $3, $4,$5,$6,$7,$8)",[id,groupImg,opening,website,name,rating,price,location])
+groupImg = []
+opening = []
+website = ""
+        }
+    })
+
+    })
+    res.json()
+})
+    } catch (err){
+        console.log(err.message)
+    }
+})
 //sending api to database (movies)
 app.get("/dreamdates/append/movies", async (req, res) => {
   try {
@@ -315,6 +292,7 @@ app.get("/dreamdates/append/events", async (req, res) => {
           );
           //https://image.tmdb.org/t/p/w500/
         });
+
         res.json();
       });
   } catch (err) {
@@ -449,27 +427,9 @@ app.post("/dreamdates/datingideas/saved", async (req, res) => {
       website,
       rating,
       user_id,
+      location
     } = req.body;
-    console.log(
-      id,
-      type,
-      title,
-      adress_street,
-      city,
-      country,
-      venue,
-      price_range,
-      link,
-      img,
-      time,
-      description,
-      votes,
-      price,
-      opening_hours,
-      website,
-      rating,
-      user_id
-    );
+
     //events
     if (title && type && adress_street && city && venue && country) {
       const eventSaved = await pool.query(
@@ -524,6 +484,19 @@ app.post("/dreamdates/datingideas/saved", async (req, res) => {
         ]
       );
       res.json(restaurantSaved);
+    }
+    if(id && location && rating && title){
+      const attractionSaved = await pool.query("INSERT INTO daring_ideas (id,title,adress_street,price_range,rating,opening_hours,website,image) VALUES ($1,$2,$3,$4,$5,$6,$7,$8",
+      [id,
+      title,
+      adress_street,
+      price_range,
+      rating,
+      opening_hours,
+      website,
+      img
+      ])
+      res.json(attractionSaved)
     }
   } catch (err) {
     console.log(err.message);
