@@ -5,7 +5,7 @@
 //   password: "damian",
 //   host: "localhost",
 //   port: 5432,
-//   database: "dreamdates",
+//   database: "Alvin",
 // });
 
 // module.exports = pool;
@@ -16,7 +16,7 @@ const { Pool } = require('pg')
 const connectionDevelopment = {
   user:"postgres",
   database: 'dreamdates',
-  password: "damian",
+  password: "Alvin",
   host: "localhost",
   port: 5432
 };

@@ -25,15 +25,15 @@ res.json(events.rows)
 }
 })
 
-app.post("/dreamdates/saved/dates", async (req,res) => {
+app.post("/dreamdates/saved/dates", async (req, res) => {
     try {
-        const user_id = req.body
-    const events = await pool.query("select * from restaurants where user_id = '$1'")
-    res.json(events.rows)
-    } catch(err){
+        const { user_id } = req.body
+        const events = await pool.query("select * from dating_ideas where user_id = $1", [user_id]) 
+        res.json(events.rows)
+    } catch (err) {
         console.error(err.message)
     }
-    })
+})
 
 // fetching movies
 app.get("/dreamdates/movies", async (req,res) => {
@@ -257,12 +257,12 @@ app.post("/dreamdates/datingideas/saved", async (req,res) => {
     const {id, type, title, adress_street, city, country, venue,price_range,link,img,time,description, votes, price, opening_hours,website, rating,user_id } = req.body
         console.log(id, type, title, adress_street, city, country, venue,price_range,link,img,time,description, votes, price, opening_hours,website, rating,user_id )
         //events
-        if(title && type && adress_street && city && venue && country && price_range){
+        if(title && type && adress_street && city && venue && country){
             const eventSaved = await pool.query("INSERT INTO dating_ideas (id, type, title, adress_street, city, country, venue,price_range,link,img,time, user_id) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10,$11,$12)",[id, type, title, adress_street, city, country, venue,price_range,link,img,time, user_id])
             res.json(eventSaved)                
         }
         //movies
-        if(title && description && img && votes && price_range && link){
+        if(title && description && img && votes && price && link){
             const moviesSaved = await pool.query("INSERT INTO dating_ideas (id, title, description, img, votes, price_range, link, user_id) VALUES ($1, $2, $3, $4, $5,$6,$7,$8)",[id, title, description, img, votes, price_range, link, user_id])
             res.json(moviesSaved)           
         }
@@ -278,11 +278,12 @@ app.post("/dreamdates/datingideas/saved", async (req,res) => {
 } )
 
 
-app.delete("/dreamdates/datingideas/delete/:id", async (req,res) => {
+app.delete("/dreamdates/datingideas/delete/:dateId", async (req,res) => {
 try{
-        const dateId = req.params
-        const userid = req.body
-        const deleteDate = await pool.query("DELETE from dating_ideas where id = $1 AND user_id = $2",[dateId,userid])
+        const {dateId} = req.params
+        const {userid} = req.body
+        console.log({dateId, userid})
+        const deleteDate = await pool.query("DELETE from dating_ideas where id = $1 AND user_id = $2",[dateId,parseInt(userid)])
         res.json(deleteDate)
     } catch(err){
         console.log(err.message)
