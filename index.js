@@ -1,11 +1,11 @@
-const express = require("express")
-const app = express()
-const cors = require("cors")
-const pool = require("./db")
-const fetch = require('node-fetch');
-const AuthRouter = require('./auth')
-const verifyjwt = require("./authorization")
-require('dotenv').config()
+const express = require("express");
+const app = express();
+const cors = require("cors");
+const pool = require("./db");
+const fetch = require("node-fetch");
+const AuthRouter = require("./auth");
+const verifyjwt = require("./authorization");
+require("dotenv").config();
 
 //middleware
 app.use(cors())
@@ -26,27 +26,30 @@ res.json(events.rows)
 })
 
 app.post("/dreamdates/saved/dates", async (req, res) => {
-    try {
-        const { user_id } = req.body
-        const events = await pool.query("select * from dating_ideas where user_id = $1", [user_id]) 
-        res.json(events.rows)
-    } catch (err) {
-        console.error(err.message)
-    }
-})
+  try {
+    const { user_id } = req.body;
+    const events = await pool.query(
+      "select * from dating_ideas where user_id = $1",
+      [user_id]
+    );
+    res.json(events.rows);
+  } catch (err) {
+    console.error(err.message);
+  }
+});
 app.get("/dreamdates/attractions", async (req, res) => {
-    try {
-        const attractions = await pool.query("SELECT * FROM attractions");
-        let formattedHours = attractions.rows.map((time) => {
-            let newTime = time.opening_hours.replace(/{|}|"/g, "");
-            let timeList = newTime.split(",");
-            return { ...time, opening_hours: timeList };
-        });
-        let formattedRestaurants = attractions.rows.map((restaurant) => {
-            let newImages = restaurant.image.replace(/{|}|"/g, "");
-            let imageList = newImages.split(",");
-            return { ...restaurant, image: imageList };
-        });
+  try {
+    const attractions = await pool.query("SELECT * FROM attractions");
+    let formattedHours = attractions.rows.map((time) => {
+      let newTime = time.opening_hours.replace(/{|}|"/g, "");
+      let timeList = newTime.split(",");
+      return { ...time, opening_hours: timeList };
+    });
+    let formattedRestaurants = attractions.rows.map((restaurant) => {
+      let newImages = restaurant.image.replace(/{|}|"/g, "");
+      let imageList = newImages.split(",");
+      return { ...restaurant, image: imageList };
+    });
 
         res.json({ opening_hours: formattedHours, image: formattedRestaurants });
     } catch (err) {
@@ -54,19 +57,19 @@ app.get("/dreamdates/attractions", async (req, res) => {
     }
 });
 app.get("/dreamdates/restaurants", async (req, res) => {
-    try {
-        const restaurants = await pool.query("SELECT * FROM restaurants");
-        // console.log(restaurants.rows)
-        let formattedHours = restaurants.rows.map((time) => {
-            let newTime = time.opening_hours.replace(/{|}|"/g, "");
-            let timeList = newTime.split(",");
-            return { ...time, opening_hours: timeList };
-        });
-        let formattedRestaurants = restaurants.rows.map((restaurant) => {
-            let newImages = restaurant.image.replace(/{|}|"/g, "");
-            let imageList = newImages.split(",");
-            return { ...restaurant, image: imageList };
-        });
+  try {
+    const restaurants = await pool.query("SELECT * FROM restaurants");
+    // console.log(restaurants.rows)
+    let formattedHours = restaurants.rows.map((time) => {
+      let newTime = time.opening_hours.replace(/{|}|"/g, "");
+      let timeList = newTime.split(",");
+      return { ...time, opening_hours: timeList };
+    });
+    let formattedRestaurants = restaurants.rows.map((restaurant) => {
+      let newImages = restaurant.image.replace(/{|}|"/g, "");
+      let imageList = newImages.split(",");
+      return { ...restaurant, image: imageList };
+    });
 
         res.json({ opening_hours: formattedHours, image: formattedRestaurants });
     } catch (err) {
@@ -74,14 +77,14 @@ app.get("/dreamdates/restaurants", async (req, res) => {
     }
 });
 // fetching movies
-app.get("/dreamdates/movies", async (req,res) => {
-    try {
-    const movies = await pool.query("SELECT * FROM movies")
-    res.json(movies.rows)
-    } catch(err){
-        console.error(err.message)
-    }
-    })
+app.get("/dreamdates/movies", async (req, res) => {
+  try {
+    const movies = await pool.query("SELECT * FROM movies");
+    res.json(movies.rows);
+  } catch (err) {
+    console.error(err.message);
+  }
+});
 // // fetching restaurants
 // app.get("/dreamdates/restaurants", async (req,res) => {
 //     try {
@@ -107,57 +110,70 @@ res.json({
     }
 })
 //https://developers.google.com/maps/documentation/places/web-service/details
-    //send api to database (restaurants)
-app.get("/dreamdates/append/restaurants", async (req,res) => {
-    try {
-    fetch(`https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=43.726095,-79.442610&type=restaurant&radius=5000&key=${process.env.GOOGLE_API}`)
-.then(res => res.json())
-.then(data => {
-    data.results.map(e => {
-    let website = ""
-    let img = ""
-    let opening = []
-    let name = e.name   
-    let rating = e.rating 
-    let price = e.price_level
-    let location = e.vicinity
-    let id = e.place_id
-    //fetching more pics
-    fetch(`https://maps.googleapis.com/maps/api/place/details/json?fields=photos,opening_hours,website&place_id=${id}&key=${process.env.GOOGLE_API}`)
-    .then(res => res.json())
-    .then(data => {
-        let groupImg = []
-console.log(opening)
-        if(data.result.website){
-             website = data.result.website
-        }
-        if(data.result.opening_hours){
-            opening.push(data.result.opening_hours.weekday_text)
-        }
-        if(data.result.photos){
-            
-                data.result.photos.map(e => {
-                    let photoRef = e.photo_reference
- img = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&maxheight=400&photo_reference=${photoRef}&key=AIzaSyB1WCqgoNdydHPMGHBjE7fR6lRhXuz27Xo`
- groupImg.push(img)
-})
-                pool.query("INSERT INTO restaurants (id, image, opening_hours,website,title,rating,price_range,adress_street) VALUES ($1, $2, $3, $4,$5,$6,$7,$8)",[id,groupImg,opening,website,name,rating,price,location])
-groupImg = []
-opening = []
-website = ""
-        }
-    })
-
-    })
-    res.json()
-})
-    } catch (err){
-        console.log(err.message)
-    }
-})
+//send api to database (restaurants)
+app.get("/dreamdates/append/restaurants", async (req, res) => {
+  try {
+    fetch(
+      `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=43.726095,-79.442610&type=restaurant&radius=5000&key=${process.env.GOOGLE_API}`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        data.results.map((e) => {
+          let website = "";
+          let img = "";
+          let opening = [];
+          let name = e.name;
+          let rating = e.rating;
+          let price = e.price_level;
+          let location = e.vicinity;
+          let id = e.place_id;
+          //fetching more pics
+          fetch(
+            `https://maps.googleapis.com/maps/api/place/details/json?fields=photos,opening_hours,website&place_id=${id}&key=${process.env.GOOGLE_API}`
+          )
+            .then((res) => res.json())
+            .then((data) => {
+              let groupImg = [];
+              console.log(opening);
+              if (data.result.website) {
+                website = data.result.website;
+              }
+              if (data.result.opening_hours) {
+                opening.push(data.result.opening_hours.weekday_text);
+              }
+              if (data.result.photos) {
+                data.result.photos.map((e) => {
+                  let photoRef = e.photo_reference;
+                  img = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&maxheight=400&photo_reference=${photoRef}&key=AIzaSyB1WCqgoNdydHPMGHBjE7fR6lRhXuz27Xo`;
+                  groupImg.push(img);
+                });
+                pool.query(
+                  "INSERT INTO restaurants (id, image, opening_hours,website,title,rating,price_range,adress_street) VALUES ($1, $2, $3, $4,$5,$6,$7,$8)",
+                  [
+                    id,
+                    groupImg,
+                    opening,
+                    website,
+                    name,
+                    rating,
+                    price,
+                    location,
+                  ]
+                );
+                groupImg = [];
+                opening = [];
+                website = "";
+              }
+            });
+        });
+        res.json();
+      });
+  } catch (err) {
+    console.log(err.message);
+  }
+});
 
 // app.get("/dreamdates/append/attractions")
-
 //sending api to database (movies)
 app.get("/dreamdates/append/movies", async (req,res) => {
     try{
@@ -239,29 +255,30 @@ async function sendEventsData(id,type,title,addressStreet,city,country,venue,pri
 }
 
 // post for creating a new user
-app.post("/dreamdates/register", async (req,res) => {
-    try {
-        console.log(req.body)
-        const {email, password} = req.body
-        const user = await pool.query("SELECT * FROM users WHERE email = $1", [
-            email,
-          ]);
-          if (user.rows.length !== 0) {
-            return res.status(401).send("user already exists");
-          }
-
-        const newUser = await pool.query(
-            "INSERT INTO users (email, password) VALUES ($1, $2) returning *",[email, password])
-            res.json(newUser.rows[0].id)
-    } catch(err){
-        console.error(err.message)
+app.post("/dreamdates/register", async (req, res) => {
+  try {
+    console.log(req.body);
+    const { email, password } = req.body;
+    const user = await pool.query("SELECT * FROM users WHERE email = $1", [
+      email,
+    ]);
+    if (user.rows.length !== 0) {
+      return res.status(401).send("user already exists");
     }
-    })
 
-app.post("/dreamdates/login", async (req,res) => {
-    try{
-        const { email } = req.body;
+    const newUser = await pool.query(
+      "INSERT INTO users (email, password) VALUES ($1, $2) returning *",
+      [email, password]
+    );
+    res.json(newUser.rows[0].id);
+  } catch (err) {
+    console.error(err.message);
+  }
+});
 
+app.post("/dreamdates/login", async (req, res) => {
+  try {
+    const { email } = req.body;
         const user = await pool.query("SELECT * FROM users WHERE email = $1", [
           email,
         ]);
