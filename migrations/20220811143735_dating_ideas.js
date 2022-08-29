@@ -4,7 +4,7 @@
  */
 exports.up = function(knex) {
     return knex.schema.createTable("dating_ideas", (table) => {
-        table.integer("id")
+        table.string("id")
         table.string("title")
         table.string("description", 2000)
         table.string("img")
