@@ -40,18 +40,14 @@ app.post("/dreamdates/saved/dates", async (req, res) => {
 app.get("/dreamdates/attractions", async (req, res) => {
   try {
     const attractions = await pool.query("SELECT * FROM attractions");
-    let formattedHours = attractions.rows.map((time) => {
-      let newTime = time.opening_hours.replace(/{|}|"/g, "");
-      let timeList = newTime.split(",");
-      return { ...time, opening_hours: timeList };
-    });
     let formattedRestaurants = attractions.rows.map((restaurant) => {
       let newImages = restaurant.image.replace(/{|}|"/g, "");
       let imageList = newImages.split(",");
-      return { ...restaurant, image: imageList };
+      let newTime = restaurant.opening_hours.replace(/{|}|"/g, "");
+      let timeList = newTime.split(",");
+      return { ...restaurant, image: imageList, opening_hours: timeList };
     });
-
-    res.json({ opening_hours: formattedHours, image: formattedRestaurants });
+    res.json(formattedRestaurants);
   } catch (err) {
     console.error(err.message);
   }
@@ -59,19 +55,16 @@ app.get("/dreamdates/attractions", async (req, res) => {
 app.get("/dreamdates/restaurants", async (req, res) => {
   try {
     const restaurants = await pool.query("SELECT * FROM restaurants");
-    // console.log(restaurants.rows)
-    let formattedHours = restaurants.rows.map((time) => {
-      let newTime = time.opening_hours.replace(/{|}|"/g, "");
-      let timeList = newTime.split(",");
-      return { ...time, opening_hours: timeList };
-    });
+
     let formattedRestaurants = restaurants.rows.map((restaurant) => {
       let newImages = restaurant.image.replace(/{|}|"/g, "");
       let imageList = newImages.split(",");
-      return { ...restaurant, image: imageList };
+        let newTime = restaurant.opening_hours.replace(/{|}|"/g, "");
+        let timeList = newTime.split(",");
+      return { ...restaurant, image: imageList, opening_hours: timeList };
     });
 
-    res.json({ opening_hours: formattedHours, image: formattedRestaurants });
+    res.json(formattedRestaurants);
   } catch (err) {
     console.error(err.message);
   }
