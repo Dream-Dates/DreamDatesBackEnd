@@ -39,7 +39,19 @@ app.get("/dreamdates/movies", async (req,res) => {
 app.get("/dreamdates/restaurants", async (req,res) => {
     try {
     const restaurants = await pool.query("SELECT * FROM restaurants")
-    res.json(restaurants.rows)
+    // console.log(restaurants.rows)
+    let formattedHours = restaurants.rows.map(time => {
+        let newTime = time.opening_hours.replace(/{|}|"/g, '')
+        let timeList = newTime.split(",")
+        return {...time, opening_hours: timeList}
+    })
+    let formattedRestaurants = restaurants.rows.map(restaurant => {
+        let newImages = restaurant.image.replace(/{|}|"/g, '')
+        let imageList = newImages.split(",")
+        return {...restaurant, image: imageList}
+    })
+
+    res.json({formattedHours, formattedRestaurants})
     } catch(err){
         console.error(err.message)
     }
@@ -263,17 +275,29 @@ app.post("/dreamdates/register", async (req,res) => {
     }
     })
 
-    app.post("/dreamdates/saved/dates", async (req,res) => {
-        try {
+    // app.post("/dreamdates/saved/dates", async (req,res) => {
+    //     try {
           
-            const {user_id} = req.body
-            console.log(user_id)
-        const events = await pool.query("select * from dating_ideas where user_id = $1",[user_id])
-        res.json(events.rows)
+    //         const {user_id} = req.body
+    //         console.log(user_id)
+    //     const events = await pool.query("select * from dating_ideas where user_id = $1",[user_id])
+    //     res.json(events.rows)
+    //     } catch(err){
+    //         console.error(err.message)
+    //     }
+    //     })
+
+    app.get("/dreamdates/saved/dates/:user_id", async (req,res) => {
+        try {
+            const {user_id} = req.params
+            console.log(user_id, "HEY HEY" )
+        const dating_ideas = await pool.query("select * from dating_ideas where user_id = $1",[user_id])
+        console.log( "HEY HEY", dating_ideas.rows )
+        res.json(dating_ideas.rows)
         } catch(err){
             console.error(err.message)
         }
-        })
+    })
     
 
 
@@ -314,12 +338,12 @@ app.post("/dreamdates/datingideas/saved", async (req,res) => {
     const {id, type, title, adress_street, city, country, venue,price_range,link,img,time,description, votes, price, opening_hours,website, rating,user_id } = req.body
         console.log(id, type, title, adress_street, city, country, venue,price_range,link,img,time,description, votes, price, opening_hours,website, rating,user_id )
         //events
-        if(title && type && adress_street && city && venue && country && price_range){
+        if(title && type && adress_street && city && venue && country){
             const eventSaved = await pool.query("INSERT INTO dating_ideas (id, type, title, adress_street, city, country, venue,price_range,link,img,time, user_id) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10,$11,$12)",[id, type, title, adress_street, city, country, venue,price_range,link,img,time, user_id])
             res.json(eventSaved)                
         }
         //movies
-        if(title && description && img && votes && price_range && link){
+        if(title && description && img && votes && price && link){
             const moviesSaved = await pool.query("INSERT INTO dating_ideas (id, title, description, img, votes, price_range, link, user_id) VALUES ($1, $2, $3, $4, $5,$6,$7,$8)",[id, title, description, img, votes, price_range, link, user_id])
             res.json(moviesSaved)           
         }
