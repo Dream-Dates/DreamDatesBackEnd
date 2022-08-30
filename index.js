@@ -180,7 +180,7 @@ app.get("/dreamdates/append/attractions", async (req,res) => {
     let name = e.name   
     let rating = e.rating 
     let location = e.vicinity
-    let id = e.place_i
+    let id = e.place_id
     //fetching more pics
     fetch(`https://maps.googleapis.com/maps/api/place/details/json?fields=photos,opening_hours,website&place_id=${id}&key=${process.env.GOOGLE_API}`)
     .then(res => res.json())
