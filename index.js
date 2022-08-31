@@ -32,7 +32,31 @@ app.post("/dreamdates/saved/dates", async (req, res) => {
       "select * from dating_ideas where user_id = $1",
       [user_id]
     );
-    res.json(events.rows);
+    let timeList
+    let imageList
+    let formattedEvents = events.rows.map(ele => {
+      if(ele.opening_hours){
+        let newTime = ele.opening_hours.replace(/{|}|"/g, "");
+         timeList = newTime.split(",");
+      }
+      if(ele.image){
+      let newImages = ele.image.replace(/{|}|"/g, "");
+       imageList = newImages.split(",")
+      }
+      return { ...ele, image: imageList, opening_hours: timeList };
+    });
+  
+    // let formattedData = events.rows.map((item) => {
+    //   console.log(item)
+    //   let newImages = item.image.replace(/{|}|"/g, "");
+    //   let imageList = newImages.split(",");
+    //   let newTime = item.opening_hours.replace(/{|}|"/g, "");
+    //   let timeList = newTime.split(",");
+    //   return { ...item, image: imageList, opening_hours: timeList };
+
+    // });
+
+    res.json(formattedEvents);
   } catch (err) {
     console.error(err.message);
   }
@@ -453,7 +477,7 @@ app.post("/dreamdates/datingideas/saved", async (req, res) => {
       location,
       image
     } = req.body;
-    console.log(id, image, website, title, rating, price_range, adress_street);
+    // console.log(id, image, website, title, rating, price_range, adress_street);
     //events
     if (title && type && adress_street && city && venue && country) {
       const eventSaved = await pool.query(
