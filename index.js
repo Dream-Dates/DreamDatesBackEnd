@@ -32,20 +32,20 @@ app.post("/dreamdates/saved/dates", async (req, res) => {
       "select * from dating_ideas where user_id = $1",
       [user_id]
     );
-    let timeList
-    let imageList
-    let formattedEvents = events.rows.map(ele => {
-      if(ele.opening_hours){
+    let timeList;
+    let imageList;
+    let formattedEvents = events.rows.map((ele) => {
+      if (ele.opening_hours) {
         let newTime = ele.opening_hours.replace(/{|}|"/g, "");
-         timeList = newTime.split(",");
+        timeList = newTime.split(",");
       }
-      if(ele.image){
-      let newImages = ele.image.replace(/{|}|"/g, "");
-       imageList = newImages.split(",")
+      if (ele.image) {
+        let newImages = ele.image.replace(/{|}|"/g, "");
+        imageList = newImages.split(",");
       }
       return { ...ele, image: imageList, opening_hours: timeList };
     });
-  
+
     // let formattedData = events.rows.map((item) => {
     //   console.log(item)
     //   let newImages = item.image.replace(/{|}|"/g, "");
@@ -475,9 +475,9 @@ app.post("/dreamdates/datingideas/saved", async (req, res) => {
       rating,
       user_id,
       location,
-      image
+      image,
     } = req.body;
-    // console.log(id, image, website, title, rating, price_range, adress_street);
+    console.log(id, adress_street, rating, title);
     //events
     if (title && type && adress_street && city && venue && country) {
       const eventSaved = await pool.query(
@@ -519,37 +519,14 @@ app.post("/dreamdates/datingideas/saved", async (req, res) => {
     ) {
       const restaurantSaved = await pool.query(
         "INSERT INTO dating_ideas (id, img, opening_hours,website,title,rating,price_range,adress_street, user_id,image) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10)",
-        [
-          id,
-          img,
-          opening_hours,
-          website,
-          title,
-          rating,
-          price_range,
-          adress_street,
-          user_id,
-          image,
-        ]
+        [id,img,opening_hours,website, title,rating,price_range,adress_street,user_id, image]
       );
-
-
-      
       res.json(restaurantSaved);
     }
-    if (id && location && rating && title) {
+    if (id && adress_street && rating && title) {
       const attractionSaved = await pool.query(
-        "INSERT INTO dating_ideas (id,title,adress_street,price_range,rating,opening_hours,website,image) VALUES ($1,$2,$3,$4,$5,$6,$7,$8",
-        [
-          id,
-          title,
-          adress_street,
-          price_range,
-          rating,
-          opening_hours,
-          website,
-          img,
-        ]
+        "INSERT INTO dating_ideas (id,title,adress_street,price_range,rating,opening_hours,website,image,img) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9",
+        [id,title,adress_street,price_range, rating, opening_hours, website,image,img]
       );
       res.json(attractionSaved);
     }
