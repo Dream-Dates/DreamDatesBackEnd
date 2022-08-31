@@ -22,6 +22,7 @@ exports.up = function (knex) {
     table.string("price");
     table.string("opening_hours");
     table.string("website");
+    table.text("image")
   });
 };
 

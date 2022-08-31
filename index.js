@@ -494,10 +494,10 @@ app.post("/dreamdates/datingideas/saved", async (req, res) => {
       adress_street
     ) {
       const restaurantSaved = await pool.query(
-        "INSERT INTO dating_ideas (id, img, opening_hours,website,title,rating,price_range,adress_street, user_id) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9)",
+        "INSERT INTO dating_ideas (id, img, opening_hours,website,title,rating,price_range,adress_street, user_id,image) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10)",
         [
           id,
-          image,
+          img,
           opening_hours,
           website,
           title,
@@ -505,8 +505,12 @@ app.post("/dreamdates/datingideas/saved", async (req, res) => {
           price_range,
           adress_street,
           user_id,
+          image,
         ]
       );
+
+
+      
       res.json(restaurantSaved);
     }
     if (id && location && rating && title) {
