@@ -65,7 +65,7 @@ res.json(events.rows)
             function validEmail(userEmail) {
                 return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(userEmail);
               }        
-              if(password.length < 7) return res.status(401).json({errorMessage:"password bust be 8 characters long"})
+              if(password.length < 7) return res.status(401).json({errorMessage:"password must be 8 characters long"})
               if (req.path === "/login") {
                 console.log(!email.length);
                 if (![email, password].every(Boolean)) {
