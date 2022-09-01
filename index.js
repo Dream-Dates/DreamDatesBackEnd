@@ -508,28 +508,34 @@ app.post("/dreamdates/datingideas/saved", async (req, res) => {
       res.json(moviesSaved);
     }
     //restaurant
-    if (
-      id &&
-      image &&
-      website &&
-      title &&
-      rating &&
-      price_range &&
-      adress_street
-    ) {
+    if (id && image && title && rating && adress_street) {
       const restaurantSaved = await pool.query(
         "INSERT INTO dating_ideas (id, img, opening_hours,website,title,rating,price_range,adress_street, user_id,image) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10)",
-        [id,img,opening_hours,website, title,rating,price_range,adress_street,user_id, image]
+        [
+          id,
+          img,
+          opening_hours,
+          website,
+          title,
+          rating,
+          price_range,
+          adress_street,
+          user_id,
+          image,
+        ]
       );
       res.json(restaurantSaved);
     }
-    if (id && adress_street && rating && title) {
-      const attractionSaved = await pool.query(
-        "INSERT INTO dating_ideas (id,title,adress_street,price_range,rating,opening_hours,website,image,img) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9",
-        [id,title,adress_street,price_range, rating, opening_hours, website,image,img]
-      );
-      res.json(attractionSaved);
-    }
+    // if (id && adress_street && rating && title) {
+    //   if(website){
+    //           const attractionSaved = await pool.query(
+    //     "INSERT INTO dating_ideas (id,title,adress_street,price_range,rating,opening_hours,website,image,img) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9",
+    //     [id,title,adress_street,price_range, rating, opening_hours, website,image,img]
+    //   );
+    //   res.json(attractionSaved);
+    //   }
+
+    // }
   } catch (err) {
     console.log(err.message);
   }

@@ -17,10 +17,10 @@ exports.up = function (knex) {
     table.string("price_range");
     table.integer("votes");
     table.string("rating");
-    table.string("link");
+    table.string("link", 2000);
     table.string("time");
     table.string("price");
-    table.string("opening_hours");
+    table.text("opening_hours");
     table.string("website");
     table.text("image")
   });
