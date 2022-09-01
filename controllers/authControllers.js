@@ -13,12 +13,17 @@ res.json(events.rows)
 }
     }
     static async registerUser(req, res) {
-        const {email, password, name, lastname} = req.body
+        const {email, password, name, lastname, retypePassword} = req.body
+        console.log(email, password, name, lastname, retypePassword)
         try {
+          console.log(password,retypePassword)
+          if(password !== retypePassword){
+            return res.status(401).json({errorMessage:"Passwords do not match"})
+          }
             function validEmail(userEmail) {
                 return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(userEmail);
               }        
-              if(password.length < 7) return res.status(401).json({errorMessage:"password needs to be 8 characters long"})
+              if(password.length < 7) return res.status(401).json({errorMessage:"Password needs to be 8 characters long"})
               if (req.path === "/register") {
                 console.log(!email.length);
                 if (![email, password].every(Boolean)) {
