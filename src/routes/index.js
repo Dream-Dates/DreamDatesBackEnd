@@ -3,7 +3,7 @@ const router = express.Router();
 
 const dreamDates = require('./dreamDates.routes')
 const AuthController = require("../controllers/auth.controllers");
-const authMiddleware = require("../middlewares/authorization.middleware");
+const authMiddleware = require("../middleware/authorization.middleware");
 
 
 router.use('/dreamdates', dreamDates)
