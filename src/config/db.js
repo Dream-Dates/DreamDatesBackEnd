@@ -13,9 +13,9 @@ require("dotenv").config();
 const { Pool } = require("pg");
 
 const connectionDevelopment = {
-  user:"postgres",
+  user: "postgres",
   database: 'dreamdates',
-  password: "damian",
+  password: "admin",
   host: "localhost",
   port: 5432,
 };
