@@ -12,8 +12,10 @@ const appendEvents = async () => {
                 data.events.map((e) => {
                     let type = e.type;
                     let title = e.title;
+                    let datetime_utc = e.datetime_utc;
                     let id = e.id;
                     let addressStreet = e.venue.address;
+                    let popularity = e.venue.popularity
                     let city = e.venue.extended_address;
                     let venue = e.venue.name;
                     let country = e.venue.country;
@@ -32,7 +34,9 @@ const appendEvents = async () => {
                         price,
                         link,
                         img,
-                        time
+                        time,
+                        datetime_utc,
+                        popularity
                     );
                     //https://image.tmdb.org/t/p/w500/
                 });
@@ -57,11 +61,13 @@ async function sendEventsData(
     price,
     link,
     img,
-    time
+    time,
+    datetime_utc,
+    popularity
 ) {
     if (img) {
         pool.query(
-            "INSERT INTO events (id, type, title, adress_Street, city, country, venue,price_range,link,img,time) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10,$11)",
+            "INSERT INTO events (id, type, title, adress_Street, city, country, venue,price_range,link,img,time,datetime_utc,popularity) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10,$11,$12,$13)",
             [
                 id,
                 type,
@@ -74,13 +80,15 @@ async function sendEventsData(
                 link,
                 img,
                 time,
+                datetime_utc,
+                popularity
             ]
         );
     } else {
         let image =
             "https://trello.com/1/cards/62e1986b704d656ec25f168c/attachments/62fff894fe86717729859552/download/events_backdrop.jpg";
         pool.query(
-            "INSERT INTO events (id, type, title, adress_Street, city, country, venue,price_range,link,img,time) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10,$11)",
+            "INSERT INTO events (id, type, title, adress_Street, city, country, venue,price_range,link,img,time,datetime_utc,popularity) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10,$11,$12,$13)",
             [
                 id,
                 type,
@@ -93,6 +101,8 @@ async function sendEventsData(
                 link,
                 image,
                 time,
+                datetime_utc,
+                popularity
             ]
         );
     }
@@ -113,6 +123,12 @@ const appendMovies = async () => {
                     const img = `https://image.tmdb.org/t/p/w500` + `${e.poster_path}`;
                     const vote = Math.floor(e.vote_average);
                     const price = "$";
+                    let release_date = e.release_date;
+                    let popularity = e.popularity;
+                    let rating = e.vote_average;
+                    let genres = [];
+                    let where = '';
+
 
                     // get
                     fetch(
@@ -121,8 +137,10 @@ const appendMovies = async () => {
                         .then((res) => res.json())
                         .then((data) => {
                             let video = data.homepage;
+                            genres = data?.genres
+
                             if (description && video) {
-                                sendMovieData(id, title, img, description, vote, price, video);
+                                sendMovieData(id, title, img, description, vote, price, video, release_date, popularity, rating, genres);
                             }
                         });
 
@@ -137,10 +155,11 @@ const appendMovies = async () => {
     }
 }
 
-async function sendMovieData(id, title, img, description, vote, price, video) {
+async function sendMovieData(id, title, img, description, vote, price, video, release_date, popularity, rating, genres) {
+
     pool.query(
-        "INSERT INTO movies (id, title, description, img, votes, price, link) VALUES ($1, $2, $3, $4, $5,$6,$7)",
-        [id, title, description, img, vote, price, video]
+        "INSERT INTO movies (id, title, description, img, votes, price, link,release_date, popularity, rating, genres) VALUES ($1, $2, $3, $4, $5,$6,$7,$8,$9,$10,$11)",
+        [id, title, description, img, vote, price, video, release_date, popularity, rating, genres]
     );
 }
 
@@ -165,14 +184,15 @@ const appendRestaurants = async () => {
                     let price = e.price_level;
                     let location = e.vicinity;
                     let id = e.place_id;
+                    let phone = "";
+                    let reviews = [];
                     //fetching more pics
                     fetch(
-                        `https://maps.googleapis.com/maps/api/place/details/json?fields=photos,opening_hours,website&place_id=${id}&key=${process.env.GOOGLE_API}`
+                        `https://maps.googleapis.com/maps/api/place/details/json?fields=photos,opening_hours,website,reviews,formatted_phone_number,formatted_address&place_id=${id}&key=${process.env.GOOGLE_API}`
                     )
                         .then((res) => res.json())
                         .then(async (data) => {
                             let groupImg = [];
-                            // console.log(opening);
                             if (data.result.website) {
                                 website = data.result.website;
                             }
@@ -185,8 +205,13 @@ const appendRestaurants = async () => {
                                     img = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&maxheight=400&photo_reference=${photoRef}&key=AIzaSyB1WCqgoNdydHPMGHBjE7fR6lRhXuz27Xo`;
                                     groupImg.push(img);
                                 });
+
+                                phone = data.result.formatted_phone_number
+
+                                reviews = data.result.reviews
+
                                 pool.query(
-                                    "INSERT INTO restaurants (id, image, opening_hours,website,title,rating,price_range,adress_street) VALUES ($1, $2, $3, $4,$5,$6,$7,$8)",
+                                    "INSERT INTO restaurants (id, image, opening_hours,website,title,rating,price_range,adress_street,phone,reviews) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10)",
                                     [
                                         id,
                                         groupImg,
@@ -196,10 +221,13 @@ const appendRestaurants = async () => {
                                         rating,
                                         price,
                                         location,
+                                        phone,
+                                        reviews
                                     ]
                                 );
                                 groupImg = [];
                                 opening = [];
+                                reviews = []
                                 website = "";
                             }
                         });
@@ -230,9 +258,11 @@ const appendAttractions = async () => {
                     let rating = e.rating;
                     let location = e.vicinity;
                     let id = e.place_id;
+                    let phone = "";
+                    let reviews = [];
                     //fetching more pics
                     fetch(
-                        `https://maps.googleapis.com/maps/api/place/details/json?fields=photos,opening_hours,website&place_id=${id}&key=${process.env.GOOGLE_API}`
+                        `https://maps.googleapis.com/maps/api/place/details/json?fields=photos,opening_hours,reviews,website,formatted_phone_number&place_id=${id}&key=${process.env.GOOGLE_API}`
                     )
                         .then((res) => res.json())
                         .then((data) => {
@@ -258,8 +288,13 @@ const appendAttractions = async () => {
                                 //     rating,
                                 //     location
                                 // );
+
+                                phone = data?.result?.formatted_phone_number
+
+                                reviews = data?.result?.reviews
+
                                 pool.query(
-                                    "INSERT INTO attractions (id, image, opening_hours,website,title,rating,price_range,adress_street) VALUES ($1, $2, $3, $4,$5,$6,$7,$8)",
+                                    "INSERT INTO attractions (id, image, opening_hours,website,title,rating,price_range,adress_street,phone,reviews) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10)",
                                     [
                                         id,
                                         groupImg,
@@ -269,6 +304,8 @@ const appendAttractions = async () => {
                                         rating,
                                         price,
                                         location,
+                                        phone,
+                                        reviews,
                                     ]
                                 );
                                 groupImg = [];

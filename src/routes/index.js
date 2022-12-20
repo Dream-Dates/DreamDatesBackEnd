@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const dreamDates = require('./dreamDates.routes')
-const AuthController = require("../controllers/auth.controllers");
+const AuthController = require("../controllers/auth.controller");
 const authMiddleware = require("../middleware/authorization.middleware");
 
 

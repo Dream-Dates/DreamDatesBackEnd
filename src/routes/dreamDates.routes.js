@@ -2,16 +2,10 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../config/db");
 const { appendEvents, appendMovies, appendRestaurants, appendAttractions } = require("../utils/appendHelpers");
+const eventController = require("../controllers/events.controller")
 
 
-router.get("/events", async (req, res) => {
-    try {
-        const events = await pool.query("SELECT * FROM events");
-        res.json(events.rows);
-    } catch (err) {
-        console.error(err.message);
-    }
-});
+router.get("/events", eventController.getEvents);
 
 
 router.get("/attractions", async (req, res) => {
