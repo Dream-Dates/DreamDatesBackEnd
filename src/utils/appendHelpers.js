@@ -67,7 +67,7 @@ async function sendEventsData(
 ) {
     if (img) {
         pool.query(
-            "INSERT INTO events (id, type, title, adress_Street, city, country, venue,price_range,link,img,time,datetime_utc,popularity) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10,$11,$12,$13)",
+            "INSERT INTO events (id, type, title, address_street, city, country, venue,price_range,link,img,time,datetime_utc,popularity) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10,$11,$12,$13)",
             [
                 id,
                 type,
@@ -88,7 +88,7 @@ async function sendEventsData(
         let image =
             "https://trello.com/1/cards/62e1986b704d656ec25f168c/attachments/62fff894fe86717729859552/download/events_backdrop.jpg";
         pool.query(
-            "INSERT INTO events (id, type, title, adress_Street, city, country, venue,price_range,link,img,time,datetime_utc,popularity) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10,$11,$12,$13)",
+            "INSERT INTO events (id, type, title, address_street, city, country, venue,price_range,link,img,time,datetime_utc,popularity) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10,$11,$12,$13)",
             [
                 id,
                 type,
@@ -211,7 +211,7 @@ const appendRestaurants = async () => {
                                 reviews = data.result.reviews
 
                                 pool.query(
-                                    "INSERT INTO restaurants (id, image, opening_hours,website,title,rating,price_range,adress_street,phone,reviews) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10)",
+                                    "INSERT INTO restaurants (id, image, opening_hours,website,title,rating,price_range,address_street,phone,reviews) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10)",
                                     [
                                         id,
                                         groupImg,
@@ -294,7 +294,7 @@ const appendAttractions = async () => {
                                 reviews = data?.result?.reviews
 
                                 pool.query(
-                                    "INSERT INTO attractions (id, image, opening_hours,website,title,rating,price_range,adress_street,phone,reviews) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10)",
+                                    "INSERT INTO attractions (id, image, opening_hours,website,title,rating,price_range,address_street,phone,reviews) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10)",
                                     [
                                         id,
                                         groupImg,

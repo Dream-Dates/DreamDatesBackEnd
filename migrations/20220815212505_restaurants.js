@@ -6,7 +6,7 @@ exports.up = function (knex) {
     return knex.schema.createTable("restaurants", (table) => {
         table.string("id")
         table.string("title")
-        table.string("adress_street")
+        table.string("address_street")
         table.string("price_range")
         table.text("opening_hours")
         table.string("website")

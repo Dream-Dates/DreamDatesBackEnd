@@ -7,7 +7,7 @@ exports.up = function (knex) {
         table.integer("id")
         table.string("title")
         table.string("type")
-        table.string("adress_street")
+        table.string("address_street")
         table.string("city")
         table.string("venue")
         table.string("country")

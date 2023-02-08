@@ -104,7 +104,7 @@ router.post("/datingideas/saved", async (req, res) => {
             id,
             type,
             title,
-            adress_street,
+            address_street,
             city,
             country,
             venue,
@@ -122,16 +122,16 @@ router.post("/datingideas/saved", async (req, res) => {
             location,
             image,
         } = req.body;
-        console.log(id, adress_street, rating, title);
+        console.log(id, address_street, rating, title);
         //events
-        if (title && type && adress_street && city && venue && country) {
+        if (title && type && address_street && city && venue && country) {
             const eventSaved = await pool.query(
-                "INSERT INTO dating_ideas (id, type, title, adress_street, city, country, venue,price_range,link,img,time, user_id) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10,$11,$12)",
+                "INSERT INTO dating_ideas (id, type, title, address_street, city, country, venue,price_range,link,img,time, user_id) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10,$11,$12)",
                 [
                     id,
                     type,
                     title,
-                    adress_street,
+                    address_street,
                     city,
                     country,
                     venue,
@@ -153,9 +153,9 @@ router.post("/datingideas/saved", async (req, res) => {
             res.json(moviesSaved);
         }
         //restaurant
-        if (id && image && title && rating && adress_street) {
+        if (id && image && title && rating && address_street) {
             const restaurantSaved = await pool.query(
-                "INSERT INTO dating_ideas (id, img, opening_hours,website,title,rating,price_range,adress_street, user_id,image) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10)",
+                "INSERT INTO dating_ideas (id, img, opening_hours,website,title,rating,price_range,address_street, user_id,image) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10)",
                 [
                     id,
                     img,
@@ -164,7 +164,7 @@ router.post("/datingideas/saved", async (req, res) => {
                     title,
                     rating,
                     price_range,
-                    adress_street,
+                    address_street,
                     user_id,
                     image,
                 ]
