@@ -142,7 +142,7 @@ const appendMovies = async () => {
                             .then((res) => res.json())
                             .then(async (data) => {
                                 let video = data.homepage;
-                                genres = data?.genres
+                                genres = JSON.stringify(data?.genres) || ""
 
                                 const movieTrailerRes = await fetch(
                                     `https://api.themoviedb.org/3/movie/${id}/videos?api_key=3c8d31b949ad58738c6e56fd0522a70a&language=en-US`
