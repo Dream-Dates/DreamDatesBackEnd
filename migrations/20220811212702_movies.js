@@ -11,7 +11,7 @@ exports.up = function (knex) {
         table.integer("votes")
         table.string("price")
         table.string("link", 2000)
-        table.string("trailer")
+        table.string("trailer", 2000)
 
     })
 };

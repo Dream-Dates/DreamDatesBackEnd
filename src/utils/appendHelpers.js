@@ -147,9 +147,9 @@ const appendMovies = async () => {
                                 const movieTrailerRes = await fetch(
                                     `https://api.themoviedb.org/3/movie/${id}/videos?api_key=3c8d31b949ad58738c6e56fd0522a70a&language=en-US`
                                 )
-                                const youtubeKey = await movieTrailerRes.json()?.results[0]?.key;
+                                const movieData = await movieTrailerRes.json()
+                                const youtubeKey = movieData?.results[0]?.key;
                                 const trailer = `https://www.youtube.com/watch?v=${youtubeKey}`
-
 
                                 if (description && video) {
 
@@ -183,7 +183,7 @@ async function sendMovieData({ id, title, img, description, vote, price, video, 
 
     pool.query(
         "INSERT INTO movies (id, title, description, img, votes, price, link,release_date, popularity, rating, genres, trailer) VALUES ($1, $2, $3, $4, $5,$6,$7,$8,$9,$10,$11,$12)",
-        [id, title, description, img, vote, price, video, release_date, popularity, rating, genres]
+        [id, title, description, img, vote, price, video, release_date, popularity, rating, genres, trailer]
     );
 }
 
