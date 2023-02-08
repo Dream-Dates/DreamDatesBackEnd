@@ -2,12 +2,12 @@
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.up = function(knex) {
+exports.up = function (knex) {
     return knex.schema.createTable("events", (table) => {
         table.integer("id")
         table.string("title")
         table.string("type")
-        table.string("adress_street")
+        table.string("address_street")
         table.string("city")
         table.string("venue")
         table.string("country")
@@ -15,13 +15,15 @@ exports.up = function(knex) {
         table.string("img")
         table.string("time")
         table.string("link")
-      })
+        table.string("datetime_utc")
+        table.string("popularity")
+    })
 };
 
 /**
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.down = function(knex) {
+exports.down = function (knex) {
     return knex.schema.dropTable("events")
 };

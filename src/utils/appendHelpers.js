@@ -67,7 +67,7 @@ async function sendEventsData(
 ) {
     if (img) {
         pool.query(
-            "INSERT INTO events (id, type, title, adress_Street, city, country, venue,price_range,link,img,time,datetime_utc,popularity) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10,$11,$12,$13)",
+            "INSERT INTO events (id, type, title, address_street, city, country, venue,price_range,link,img,time,datetime_utc,popularity) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10,$11,$12,$13)",
             [
                 id,
                 type,
@@ -88,7 +88,7 @@ async function sendEventsData(
         let image =
             "https://trello.com/1/cards/62e1986b704d656ec25f168c/attachments/62fff894fe86717729859552/download/events_backdrop.jpg";
         pool.query(
-            "INSERT INTO events (id, type, title, adress_Street, city, country, venue,price_range,link,img,time,datetime_utc,popularity) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10,$11,$12,$13)",
+            "INSERT INTO events (id, type, title, address_street, city, country, venue,price_range,link,img,time,datetime_utc,popularity) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10,$11,$12,$13)",
             [
                 id,
                 type,
@@ -111,55 +111,79 @@ async function sendEventsData(
 //sending api to database (movies)
 const appendMovies = async () => {
     try {
-        const result = await fetch(
-            "https://api.themoviedb.org/3/discover/movie?api_key=3c8d31b949ad58738c6e56fd0522a70a&language=en-US&sort_by=popularity.desc&include_adult=false&include_video=false&page=1&with_watch_monetization_types=flatrate"
-        )
-            .then((res) => res.json())
-            .then((data) => {
-                data.results.map((e) => {
-                    const id = e.id;
-                    const title = e.title;
-                    const description = e.overview;
-                    const img = `https://image.tmdb.org/t/p/w500` + `${e.poster_path}`;
-                    const vote = Math.floor(e.vote_average);
-                    const price = "$";
-                    let release_date = e.release_date;
-                    let popularity = e.popularity;
-                    let rating = e.vote_average;
-                    let genres = [];
-                    let where = '';
+
+        let allResults = []
+        await Promise.all([1, 2, 3, 4, 5].map(async (page) => {
+
+            let result = await fetch(
+                `https://api.themoviedb.org/3/discover/movie?api_key=3c8d31b949ad58738c6e56fd0522a70a&language=en-US&sort_by=popularity.desc&include_adult=false&include_video=true&page=1&with_watch_monetization_types=flatrate&page=${page}`
+            )
+                .then((res) => res.json())
+                .then(async (data) => {
+
+                    let tempRes = await Promise.all(data.results.map(async (e, index) => {
+                        const id = e.id;
+                        const title = e.title;
+                        const description = e.overview;
+                        const img = `https://image.tmdb.org/t/p/w500` + `${e.poster_path}`;
+                        const vote = Math.floor(e.vote_average);
+                        const price = "$";
+                        let release_date = e.release_date;
+                        let popularity = e.popularity;
+                        let rating = e.vote_average;
+                        let genres = [];
+                        let where = '';
 
 
-                    // get
-                    fetch(
-                        `https://api.themoviedb.org/3/movie/${id}?api_key=3c8d31b949ad58738c6e56fd0522a70a&language=en-US`
-                    )
-                        .then((res) => res.json())
-                        .then((data) => {
-                            let video = data.homepage;
-                            genres = data?.genres
+                        // get
+                        const res = await fetch(
+                            `https://api.themoviedb.org/3/movie/${id}?api_key=3c8d31b949ad58738c6e56fd0522a70a&language=en-US`
+                        )
+                            .then((res) => res.json())
+                            .then(async (data) => {
+                                let video = data.homepage;
+                                genres = JSON.stringify(data?.genres) || ""
 
-                            if (description && video) {
-                                sendMovieData(id, title, img, description, vote, price, video, release_date, popularity, rating, genres);
-                            }
-                        });
+                                const movieTrailerRes = await fetch(
+                                    `https://api.themoviedb.org/3/movie/${id}/videos?api_key=3c8d31b949ad58738c6e56fd0522a70a&language=en-US`
+                                )
+                                const movieData = await movieTrailerRes.json()
+                                const youtubeKey = movieData?.results[0]?.key;
+                                const trailer = `https://www.youtube.com/watch?v=${youtubeKey}`
 
+                                if (description && video) {
 
+                                    const dataToUpload = {
+                                        id, title, img, description, vote, price, video, release_date, popularity, rating, genres, trailer
+                                    }
+
+                                    await sendMovieData(dataToUpload);
+
+                                    return (dataToUpload)
+                                }
+
+                            });
+
+                        return res
+                    }));
+                    tempRes = tempRes.filter(item => item)
+                    return tempRes;
                 });
-                return data.results;
-            });
+            allResults = [...allResults, ...result];
+        }))
 
-        return result;
+
+        return ({ length: allResults.length, data: allResults });
     } catch (err) {
         console.error(err.message);
     }
 }
 
-async function sendMovieData(id, title, img, description, vote, price, video, release_date, popularity, rating, genres) {
+async function sendMovieData({ id, title, img, description, vote, price, video, release_date, popularity, rating, genres, trailer }) {
 
     pool.query(
-        "INSERT INTO movies (id, title, description, img, votes, price, link,release_date, popularity, rating, genres) VALUES ($1, $2, $3, $4, $5,$6,$7,$8,$9,$10,$11)",
-        [id, title, description, img, vote, price, video, release_date, popularity, rating, genres]
+        "INSERT INTO movies (id, title, description, img, votes, price, link,release_date, popularity, rating, genres, trailer) VALUES ($1, $2, $3, $4, $5,$6,$7,$8,$9,$10,$11,$12)",
+        [id, title, description, img, vote, price, video, release_date, popularity, rating, genres, trailer]
     );
 }
 
@@ -211,7 +235,7 @@ const appendRestaurants = async () => {
                                 reviews = data.result.reviews
 
                                 pool.query(
-                                    "INSERT INTO restaurants (id, image, opening_hours,website,title,rating,price_range,adress_street,phone,reviews) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10)",
+                                    "INSERT INTO restaurants (id, image, opening_hours,website,title,rating,price_range,address_street,phone,reviews) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10)",
                                     [
                                         id,
                                         groupImg,
@@ -294,7 +318,7 @@ const appendAttractions = async () => {
                                 reviews = data?.result?.reviews
 
                                 pool.query(
-                                    "INSERT INTO attractions (id, image, opening_hours,website,title,rating,price_range,adress_street,phone,reviews) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10)",
+                                    "INSERT INTO attractions (id, image, opening_hours,website,title,rating,price_range,address_street,phone,reviews) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10)",
                                     [
                                         id,
                                         groupImg,

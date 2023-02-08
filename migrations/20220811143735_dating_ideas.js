@@ -10,7 +10,7 @@ exports.up = function (knex) {
     table.text("img");
     table.integer("user_id");
     table.string("type");
-    table.string("adress_street");
+    table.string("address_street");
     table.string("city");
     table.string("venue");
     table.string("country");
