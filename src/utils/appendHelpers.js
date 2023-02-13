@@ -232,7 +232,8 @@ const appendRestaurants = async () => {
 
                                 phone = data.result.formatted_phone_number
 
-                                reviews = data.result.reviews
+                                reviews = JSON.stringify(data?.result?.reviews)
+
 
                                 pool.query(
                                     "INSERT INTO restaurants (id, image, opening_hours,website,title,rating,price_range,address_street,phone,reviews) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10)",
@@ -315,7 +316,8 @@ const appendAttractions = async () => {
 
                                 phone = data?.result?.formatted_phone_number
 
-                                reviews = data?.result?.reviews
+                                reviews = JSON.stringify(data?.result?.reviews)
+
 
                                 pool.query(
                                     "INSERT INTO attractions (id, image, opening_hours,website,title,rating,price_range,address_street,phone,reviews) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10)",
