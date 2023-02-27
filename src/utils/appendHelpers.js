@@ -233,6 +233,7 @@ const appendRestaurants = async () => {
                                 phone = data.result.formatted_phone_number
 
                                 reviews = JSON.stringify(data?.result?.reviews)
+                                console.log(reviews)
 
 
                                 pool.query(
