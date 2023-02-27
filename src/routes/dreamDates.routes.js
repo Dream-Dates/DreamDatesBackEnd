@@ -16,7 +16,8 @@ router.get("/attractions", async (req, res) => {
             let imageList = newImages.split(",");
             let newTime = restaurant.opening_hours.replace(/{|}|"/g, "");
             let timeList = newTime.split(",");
-            return { ...restaurant, image: imageList, opening_hours: timeList };
+            const reviews = JSON.parse(restaurant?.reviews)
+            return { ...restaurant, image: imageList, opening_hours: timeList, reviews };
         });
         res.json(formattedRestaurants);
     } catch (err) {
@@ -28,12 +29,13 @@ router.get("/restaurants", async (req, res) => {
     try {
         const restaurants = await pool.query("SELECT * FROM restaurants");
 
-        let formattedRestaurants = restaurants.rows.map((restaurant) => {
+        let formattedRestaurants = restaurants.rows.map((restaurant, index) => {
             let newImages = restaurant.image.replace(/{|}|"/g, "");
             let imageList = newImages.split(",");
             let newTime = restaurant.opening_hours.replace(/{|}|"/g, "");
             let timeList = newTime.split(",");
-            return { ...restaurant, image: imageList, opening_hours: timeList };
+            const reviews = JSON.parse(restaurant?.reviews)
+            return { ...restaurant, image: imageList, opening_hours: timeList, reviews };
         });
 
         res.json(formattedRestaurants);

@@ -131,7 +131,7 @@ const appendMovies = async () => {
                         let release_date = e.release_date;
                         let popularity = e.popularity;
                         let rating = e.vote_average;
-                        let genres = [];
+                        let genres = "";
                         let where = '';
 
 
@@ -209,7 +209,7 @@ const appendRestaurants = async () => {
                     let location = e.vicinity;
                     let id = e.place_id;
                     let phone = "";
-                    let reviews = [];
+                    let reviews = "";
                     //fetching more pics
                     fetch(
                         `https://maps.googleapis.com/maps/api/place/details/json?fields=photos,opening_hours,website,reviews,formatted_phone_number,formatted_address&place_id=${id}&key=${process.env.GOOGLE_API}`
@@ -233,8 +233,6 @@ const appendRestaurants = async () => {
                                 phone = data.result.formatted_phone_number
 
                                 reviews = JSON.stringify(data?.result?.reviews)
-                                console.log(reviews)
-
 
                                 pool.query(
                                     "INSERT INTO restaurants (id, image, opening_hours,website,title,rating,price_range,address_street,phone,reviews) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10)",
@@ -253,7 +251,7 @@ const appendRestaurants = async () => {
                                 );
                                 groupImg = [];
                                 opening = [];
-                                reviews = []
+                                reviews = ""
                                 website = "";
                             }
                         });

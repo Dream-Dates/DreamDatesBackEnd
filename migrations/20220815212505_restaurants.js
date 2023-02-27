@@ -12,7 +12,7 @@ exports.up = function (knex) {
         table.string("website")
         table.text("image")
         table.string("phone")
-        table.jsonb("reviews")
+        table.string("reviews")
         table.string("rating")
     })
 };
