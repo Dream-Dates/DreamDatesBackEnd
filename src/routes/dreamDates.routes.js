@@ -18,7 +18,7 @@ router.get("/attractions", async (req, res) => {
     }
 });
 
-const formatAttractionsData = (restaurants) => {
+const formatAttractionsData = (attractions) => {
     const result = attractions.rows.map((restaurant) => {
         let newImages = restaurant.image.replace(/{|}|"/g, "");
         let imageList = newImages.split(",");
