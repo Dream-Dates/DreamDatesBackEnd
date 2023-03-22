@@ -11,38 +11,50 @@ router.get("/events", eventController.getEvents);
 router.get("/attractions", async (req, res) => {
     try {
         const attractions = await pool.query("SELECT * FROM attractions");
-        let formattedRestaurants = attractions.rows.map((restaurant) => {
-            let newImages = restaurant.image.replace(/{|}|"/g, "");
-            let imageList = newImages.split(",");
-            let newTime = restaurant.opening_hours.replace(/{|}|"/g, "");
-            let timeList = newTime.split(",");
-            const reviews = JSON.parse(restaurant?.reviews)
-            return { ...restaurant, image: imageList, opening_hours: timeList, reviews };
-        });
-        res.json(formattedRestaurants);
+
+        res.json(formatAttractionsData(attractions));
     } catch (err) {
         console.error(err.message);
     }
 });
+
+const formatAttractionsData = (restaurants) => {
+    const result = attractions.rows.map((restaurant) => {
+        let newImages = restaurant.image.replace(/{|}|"/g, "");
+        let imageList = newImages.split(",");
+        let newTime = restaurant.opening_hours.replace(/{|}|"/g, "");
+        let timeList = newTime.split(",");
+        const reviews = JSON.parse(restaurant?.reviews)
+        return { ...restaurant, image: imageList, opening_hours: timeList, reviews };
+    });
+
+    return result;
+}
 
 router.get("/restaurants", async (req, res) => {
     try {
         const restaurants = await pool.query("SELECT * FROM restaurants");
 
-        let formattedRestaurants = restaurants.rows.map((restaurant, index) => {
-            let newImages = restaurant.image.replace(/{|}|"/g, "");
-            let imageList = newImages.split(",");
-            let newTime = restaurant.opening_hours.replace(/{|}|"/g, "");
-            let timeList = newTime.split(",");
-            const reviews = JSON.parse(restaurant?.reviews)
-            return { ...restaurant, image: imageList, opening_hours: timeList, reviews };
-        });
+        // let formattedRestaurants = 
 
-        res.json(formattedRestaurants);
+        res.json(formatRestaurantData(restaurants));
     } catch (err) {
         console.error(err.message);
     }
 });
+
+const formatRestaurantData = (restaurants) => {
+    const result = restaurants.rows.map((restaurant, index) => {
+        let newImages = restaurant.image.replace(/{|}|"/g, "");
+        let imageList = newImages.split(",");
+        let newTime = restaurant.opening_hours.replace(/{|}|"/g, "");
+        let timeList = newTime.split(",");
+        const reviews = JSON.parse(restaurant?.reviews)
+        return { ...restaurant, image: imageList, opening_hours: timeList, reviews };
+    });
+
+    return result;
+}
 
 // fetching movies
 router.get("/movies", async (req, res) => {
@@ -72,6 +84,7 @@ router.get("/dates", async (req, res) => {
 });
 
 router.post("/saved/dates", async (req, res) => {
+    // reviews reviews, trailer, datetime_utc
     try {
         const { user_id } = req.body;
         const events = await pool.query(
@@ -123,6 +136,9 @@ router.post("/datingideas/saved", async (req, res) => {
             user_id,
             location,
             image,
+            reviews,
+            trailer,
+            datetime_utc,
         } = req.body;
         console.log(id, address_street, rating, title);
         //events
@@ -157,7 +173,7 @@ router.post("/datingideas/saved", async (req, res) => {
         //restaurant
         if (id && image && title && rating && address_street) {
             const restaurantSaved = await pool.query(
-                "INSERT INTO dating_ideas (id, img, opening_hours,website,title,rating,price_range,address_street, user_id,image) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10)",
+                "INSERT INTO dating_ideas (id, img, opening_hours,website,title,rating,price_range,address_street, user_id,image,reviews) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$10,$11)",
                 [
                     id,
                     img,
@@ -169,8 +185,10 @@ router.post("/datingideas/saved", async (req, res) => {
                     address_street,
                     user_id,
                     image,
+                    reviews
                 ]
             );
+            console.log("saving restaurants data")
             res.json(restaurantSaved);
         }
 
@@ -178,6 +196,80 @@ router.post("/datingideas/saved", async (req, res) => {
         console.log(err.message);
     }
 });
+
+// New ideas endpoint 
+router.post("/save/idea", async (req, res) => {
+    try {
+        const {
+            id,
+            type,
+            user_id
+        } = req.body;
+        console.log(id, type, user_id);
+
+        const eventSaved = await pool.query(
+            "INSERT INTO ideas (id, type, user_id) VALUES ($1, $2, $3)",
+            [
+                id,
+                type,
+                user_id
+            ]
+        );
+        res.json(eventSaved);
+
+    } catch (err) {
+        console.log(err.message);
+    }
+});
+
+
+// get saved ideas 
+router.post("/saved/ideas", async (req, res) => {
+    // reviews reviews, trailer, datetime_utc
+    try {
+        const { user_id } = req.body;
+
+        if (user_id) {
+
+            const ideasData = await pool.query(
+                "select * from ideas where user_id = $1",
+                [user_id]
+            );
+            const ideas = ideasData?.rows
+
+            const ideasResult = await Promise.all(ideas?.map(async ideas => {
+                if (ideas.type === "restaurant") {
+                    const restaurants = await pool.query("SELECT * FROM restaurants where id = $1", [ideas.id]);
+
+                    return formatRestaurantData(restaurants) || 'error restaurant';
+                }
+                if (ideas.type === "attractions") {
+                    const attractions = await pool.query("SELECT * FROM attractions where id = $1", [ideas.id]);
+
+                    return formatAttractionsData(attractions) || 'error movies';
+                }
+                if (ideas.type === "events") {
+                    const events = await pool.query("SELECT * FROM events where id = $1", [ideas.id]);
+
+                    return events?.rows || 'error events';
+                }
+                if (ideas.type === "movies") {
+                    const movies = await pool.query("SELECT * FROM movies where id = $1", [ideas.id]);
+
+                    return movies?.rows || 'error movies';
+                }
+
+            }))
+
+            return res.json({ data: ideasResult });
+        }
+        res.json({ error: 'user_id is missing' });
+
+    } catch (err) {
+        console.error(err.message);
+    }
+});
+
 
 router.delete("/datingideas/delete/:dateId", async (req, res) => {
     try {
