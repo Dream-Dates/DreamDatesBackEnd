@@ -238,7 +238,7 @@ router.post("/saved/ideas", async (req, res) => {
             const ideas = ideasData?.rows
 
             const ideasResult = await Promise.all(ideas?.map(async ideas => {
-                if (ideas.type === "restaurant") {
+                if (ideas.type === "restaurants") {
                     const restaurants = await pool.query("SELECT * FROM restaurants where id = $1", [ideas.id]);
 
                     return formatRestaurantData(restaurants) || 'error restaurant';
