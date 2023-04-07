@@ -263,7 +263,7 @@ router.post("/saved/ideas", async (req, res) => {
             }))
             // console.log('ideasResult', ideasResult)
 
-            return res.json({ data: ideasResult?.filter(e => e) });
+            return res.json(ideasResult?.filter(e => e));
         }
         res.json({ error: 'user_id is missing' });
 
