@@ -236,30 +236,32 @@ router.post("/saved/ideas", async (req, res) => {
                 [user_id]
             );
             const ideas = ideasData?.rows
+            // console.log('ides', ideas)
 
             const ideasResult = await Promise.all(ideas?.map(async idea => {
                 if (idea.type === "restaurants") {
-                    const restaurants = await pool.query("SELECT * FROM restaurants where id = $1", [idea.id]);
+                    const restaurants = await pool.query("SELECT DISTINCT * FROM restaurants where id = $1", [idea.id]);
 
-                    return formatRestaurantData(restaurants) || 'error restaurant';
+                    return formatRestaurantData(restaurants)[0] || 'error restaurant';
                 }
                 if (idea.type === "attractions") {
                     const attractions = await pool.query("SELECT * FROM attractions where id = $1", [idea.id]);
 
-                    return formatAttractionsData(attractions) || 'error movies';
+                    return formatAttractionsData(attractions)[0] || 'error movies';
                 }
                 if (idea.type === "events") {
                     const events = await pool.query("SELECT * FROM events where id = $1", [idea.id]);
 
-                    return events?.rows || 'error events';
+                    return events?.rows[0] || 'error events';
                 }
                 if (idea.type === "movies") {
                     const movies = await pool.query("SELECT * FROM movies where id = $1", [idea.id]);
 
-                    return movies?.rows || 'error movies';
+                    return movies?.rows[0] || 'error movies';
                 }
 
             }))
+            // console.log('ideasResult', ideasResult)
 
             return res.json({ data: ideasResult?.filter(e => e) });
         }
